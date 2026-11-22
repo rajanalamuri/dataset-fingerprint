@@ -43,6 +43,10 @@ def _remote_options(protocol: str, opts: dict) -> dict:
     if protocol == "dbfs":
         opts.setdefault("instance", os.environ.get("DATABRICKS_HOST", "").replace("https://", "").rstrip("/"))
         opts.setdefault("token", os.environ.get("DATABRICKS_TOKEN"))
+    if protocol in ("gs", "gcs") and os.environ.get("STORAGE_EMULATOR_HOST"):
+        # gcsfs >= 2025 probes bucket type over gRPC first; emulators don't speak it and every call
+        # stalls ~60 s before falling back. Must be set before gcsfs is imported.
+        os.environ.setdefault("GCSFS_EXPERIMENTAL_ZB_HNS_SUPPORT", "false")
     if protocol == "s3" and os.environ.get("AWS_ENDPOINT_URL") and "endpoint_url" not in opts:
         # MinIO, Cloudflare R2, Ceph, LocalStack, ...
         opts.setdefault("client_kwargs", {}).setdefault("endpoint_url", os.environ["AWS_ENDPOINT_URL"])

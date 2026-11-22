@@ -495,3 +495,52 @@ def test_cli_new_commands(tmp_path, image_folder, capsys):
     assert cli(["verify", "prod", "--quick", "-L", L]) == 0
     assert cli(["checkout", "prod", str(tmp_path / "co"), "-L", L]) == 0
     assert (tmp_path / "co" / "train" / "cat" / "cat_0.jpg").exists()
+
+
+def test_yolo_detection_labels_object_counts(tmp_path):
+    src = tmp_path / "det"
+    for split, n in (("train2017", 20), ("val2017", 5)):
+        for i in range(n):
+            put(src / "images" / split / f"{i:012d}.jpg", f"{split}{i}")
+            put(src / "labels" / split / f"{i:012d}.txt", "0 0.5 0.5 0.2 0.3\n0 0.1 0.1 0.1 0.1\n2 0.5 0.5 1 1\n")
+    v = fp.commit(str(src), str(tmp_path / "L"), label_format="yolo", class_names=["person", "bicycle", "car"], quiet=True)
+    md = v["metadata"]
+    assert md["splits"]["train"]["class_counts"] == {"car": 20, "person": 40}
+    assert md["splits"]["val"]["class_counts"] == {"car": 5, "person": 10}
+    assert md["label_source"] == "yolo:objects"
+    assert "record_overlap_with_train" not in v["quality"]  # box coordinates are not text records
+
+
+def test_sparse_numeric_ids_are_not_frame_sequences(tmp_path):
+    """COCO / ImageNet style ids (sparse, irregular) are independent samples, not video frames."""
+    import random as _r
+
+    rnd = _r.Random(3)
+    ids = sorted(rnd.sample(range(1, 600000), 400))
+    src = tmp_path / "coco_like"
+    for i in ids:
+        put(src / "images" / f"{i:012d}.jpg", f"img{i}")
+        put(src / "labels" / f"{i:012d}.txt", f"0 0.5 0.5 0.{i % 9 + 1} 0.2\n")
+    v = fp.commit(str(src), str(tmp_path / "L"), quiet=True)
+    assert "sequences" not in v["metadata"]
+    sp = {}
+    for r in v.records():
+        sp.setdefault(r["source_path"].split("/")[-1].split(".")[0], set()).add(r["split"])
+    assert all(len(x) == 1 for x in sp.values())  # image + label still together
+    frac = v["metadata"]["split"]
+    assert 0.7 < frac["train"] < 0.9  # balanced, not lumped into a few blocks
+
+
+def test_epoch_ms_frames_are_a_sequence_with_their_step(tmp_path):
+    src = tmp_path / "cam"
+    t0 = 1_715_000_000_000
+    for k in range(600):
+        put(src / "front" / f"{t0 + k * 100}.jpg", f"f{k}")  # 10 Hz, ms timestamps
+    v = fp.commit(str(src), str(tmp_path / "L"), quiet=True)
+    assert v["metadata"]["sequences"]["image"]["frames"] == 600
+    by = {}
+    for r in v.records():
+        by[int(r["source_path"].split("/")[-1].split(".")[0])] = r["split"]
+    ks = sorted(by)
+    runs = sum(1 for a, b in zip(ks, ks[1:]) if by[a] != by[b])
+    assert runs < 40  # contiguous blocks of frames, not frame-by-frame interleaving

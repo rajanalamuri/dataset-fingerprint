@@ -1,0 +1,200 @@
+{
+  "environment": {
+    "python": "3.13.18",
+    "platform": "Linux-6.18.44-fc-v726-x86_64-with-glibc2.39",
+    "cpus": 2,
+    "mlfingerprint": "0.1.0"
+  },
+  "parts": [
+    {
+      "dataset": "COCO 2017 annotations (YOLO format, Ultralytics redistribution)",
+      "ground_truth": {
+        "label_files": {
+          "train2017": 117266,
+          "val2017": 4952
+        },
+        "images_listed": {
+          "train2017": 118287,
+          "val2017": 5000
+        },
+        "images_without_labels": {
+          "train2017": 1021,
+          "val2017": 48
+        },
+        "objects": {
+          "train2017": 849947,
+          "val2017": 36335
+        },
+        "official_val_annotations": 36781,
+        "official_val_crowd": 446,
+        "official_val_noncrowd": 36335,
+        "identical_label_file_groups": [
+          [
+            "train2017/000000499402.txt",
+            "train2017/000000517070.txt"
+          ],
+          [
+            "train2017/000000220834.txt",
+            "train2017/000000295776.txt"
+          ],
+          [
+            "train2017/000000415874.txt",
+            "train2017/000000485616.txt"
+          ]
+        ],
+        "extra_identical_files": 3,
+        "cross_split_identical_groups": 0,
+        "top5_train": [
+          [
+            "person",
+            257252
+          ],
+          [
+            "car",
+            43533
+          ],
+          [
+            "chair",
+            38073
+          ],
+          [
+            "book",
+            24077
+          ],
+          [
+            "bottle",
+            24070
+          ]
+        ]
+      },
+      "timings_s": {
+        "commit_cold": 35.136,
+        "commit_no_change": 23.447,
+        "verify_full": 9.886,
+        "verify_sample_5pct": 0.882,
+        "verify_quick": 5.357,
+        "verify_after_tamper": 8.826,
+        "commit_after_one_change": 27.213,
+        "commit_with_leak": 27.231
+      },
+      "mlfingerprint": {
+        "version": "coco2017-annotations-v1.0.0",
+        "fingerprint": "sha256:a480bd1d8b1f93f30e9aa1912421832d1b1a40940499e9b452e2b15e6d63a940",
+        "total_files": 122224,
+        "split_files": {
+          "train": 117267,
+          "val": 4954,
+          "test": 1,
+          "shared": 2
+        },
+        "num_classes": 80,
+        "label_source": "yolo:objects",
+        "annotation_json_split": "val",
+        "list_file_splits": {
+          "train2017.txt": "train",
+          "val2017.txt": "val",
+          "test-dev2017.txt": "test"
+        },
+        "quality": {
+          "duplicate_files": 3,
+          "duplicates_across_splits": 0,
+          "augmented_files": 0,
+          "augmented_by_split": {},
+          "augmentation_cross_split": 0,
+          "augmented_in_eval": 0,
+          "parent_eval_leaks": 0,
+          "empty_files": 0,
+          "unreadable_files": 0
+        },
+        "tamper": {
+          "detected": true,
+          "modified": [
+            "labels/val2017/000000009914.txt"
+          ],
+          "recommit": "coco2017-annotations-v1.0.1",
+          "bump": "patch"
+        },
+        "leak": {
+          "version": "coco2017-annotations-v1.1.0",
+          "duplicates_across_splits": 1,
+          "warning": "1 identical file(s) appear in more than one split, e.g. ['labels/train2017/999999999999.txt', 'labels/val2017/000000000872.txt']"
+        },
+        "sizes_bytes": {
+          "data": 59362226,
+          "manifest.json": 9527,
+          "index.jsonl.gz": 7981793
+        }
+      },
+      "checks": {
+        "label_files_per_split_match": true,
+        "object_counts_match_train": true,
+        "object_counts_match_val": true,
+        "val_labels_match_official_noncrowd": true,
+        "duplicate_count_matches": true,
+        "cross_split_duplicates_match": true,
+        "tamper_detected": true,
+        "copied_val_label_in_train_flagged": true
+      }
+    },
+    {
+      "dataset": "coco128 (128 COCO train2017 images + YOLO labels)",
+      "ground_truth": {
+        "images": 128,
+        "label_files": 128,
+        "images_without_labels": 0,
+        "distinct_resolutions": 58,
+        "top_resolutions": [
+          [
+            "640x480",
+            35
+          ],
+          [
+            "640x427",
+            12
+          ],
+          [
+            "480x640",
+            9
+          ]
+        ]
+      },
+      "timings_s": {
+        "commit_with_probe": 0.127,
+        "verify_after_tamper": 0.03
+      },
+      "mlfingerprint": {
+        "splits": {
+          "train": 193,
+          "val": 38,
+          "test": 27
+        },
+        "group_by": "auto:recording",
+        "groups": 132,
+        "resolutions_top": [
+          [
+            "640x480",
+            35
+          ],
+          [
+            "640x427",
+            12
+          ],
+          [
+            "480x640",
+            9
+          ]
+        ],
+        "objects": 941,
+        "tamper_detected": true,
+        "tampered": [
+          "images/train2017/000000000042.jpg"
+        ]
+      },
+      "checks": {
+        "every_image_label_pair_in_one_split": true,
+        "resolutions_match": true,
+        "one_flipped_byte_in_a_jpeg_detected": true
+      }
+    }
+  ]
+}

@@ -26,7 +26,9 @@ ok = lambda b: "✅" if b else "❌"  # noqa: E731
 names = " | ".join(d["dataset"] for d in D)
 sep = "|---|" + "---:|" * len(D)
 
-md = f"""# Benchmarks: MNIST and Fashion-MNIST
+md = f"""# Benchmarks: MNIST, Fashion-MNIST and COCO 2017
+
+## MNIST and Fashion-MNIST
 
 mlfingerprint {E["mlfingerprint"]} on two well-known 70,000-image datasets, each exported to the standard
 ImageFolder layout (`train/<class>/*.png`, `test/<class>/*.png`). The raw files were checked against
@@ -109,4 +111,90 @@ below 0.1 %.
   training pipeline reads. Raw `.gz` files can be versioned directly too.
 """
 (HERE / "RESULTS.md").write_text(md)
+
+# ----------------------------------------------------------------------------- COCO
+CP = HERE / "results" / "coco.json"
+if CP.exists():
+    C = json.loads(CP.read_text())
+    A, B = C["parts"]
+    ga, ma, ta = A["ground_truth"], A["mlfingerprint"], A["timings_s"]
+    gb, mb_, tb = B["ground_truth"], B["mlfingerprint"], B["timings_s"]
+    chk = lambda d: "\n".join(f"| {k.replace('_', ' ')} | {ok(v)} |" for k, v in d.items())  # noqa: E731
+    top5 = ", ".join(f"{k} {v:,}" for k, v in ga["top5_train"])
+    groups = "; ".join(" = ".join(g) for g in ga["identical_label_file_groups"])
+    md += f"""
+---
+
+# Benchmarks: COCO 2017
+
+COCO's own servers and Hugging Face are unreachable from the benchmark sandbox, so this uses the two COCO 2017
+packages that Ultralytics redistributes on GitHub (`bash benchmarks/download_coco.sh`):
+
+- **Part A**: the complete COCO 2017 annotation set: {ga["label_files"]["train2017"]:,} train + {ga["label_files"]["val2017"]:,} val YOLO label
+  files (every annotated image), the image lists, and the COCO Consortium's official `instances_val2017.json`.
+  **No image pixels.**
+- **Part B**: `coco128`, 128 real COCO train2017 JPEGs with their label files.
+
+Reproduce: `bash benchmarks/download_coco.sh .bench/coco && python benchmarks/run_coco.py --root .bench/coco --work .bench/coco-work`
+
+## Part A: 122,224 annotation files
+
+| Check (ground truth computed without mlfingerprint) | |
+|---|:-:|
+{chk(A["checks"])}
+
+| Finding | Value |
+|---|---:|
+| Files per split, detected from `train2017/` and `val2017/` (label files + list/annotation files) | {ma["split_files"]["train"]:,} train · {ma["split_files"]["val"]:,} val |
+| `instances_val2017.json` and `test-dev2017.txt` assigned to | {ma["annotation_json_split"]} · {ma["list_file_splits"]["test-dev2017.txt"]} |
+| Objects (YOLO boxes), train / val | {ga["objects"]["train2017"]:,} / {ga["objects"]["val2017"]:,} |
+| Classes found | {ma["num_classes"]} |
+| Most frequent classes in train | {top5} |
+| Official val annotations: total / crowd / non-crowd | {ga["official_val_annotations"]:,} / {ga["official_val_crowd"]:,} / {ga["official_val_noncrowd"]:,} |
+| Listed images with **no** annotation file (train / val) | {ga["images_without_labels"]["train2017"]:,} / {ga["images_without_labels"]["val2017"]:,} |
+| Byte-identical label files (all inside train, none across splits) | {ga["extra_identical_files"]} |
+| Dataset fingerprint | `{ma["fingerprint"][:23]}…` |
+
+The Ultralytics YOLO conversion of val2017 holds exactly the official **non-crowd** objects: crowd regions are
+dropped by design, and every remaining object is accounted for, class by class.
+
+The three identical label files are pairs of different images whose only label is one box covering the whole frame
+(`{groups}`). They are not duplicate images. Identical annotations are only a hint; proving a duplicate takes the
+pixels.
+
+| Scenario | Result |
+|---|---|
+| One box coordinate edited in one val label → `verify` | FAILED, names `{ma["tamper"]["modified"][0]}` |
+| Re-commit after that edit | `{ma["tamper"]["recommit"]}` ({ma["tamper"]["bump"]} bump) |
+| A val label file copied into train under a new name | flagged: {ma["leak"]["duplicates_across_splits"]} identical file across splits |
+
+| Operation (122,224 files, {C["environment"]["cpus"]} vCPUs) | Time |
+|---|---:|
+| First commit (hash + count 886k objects by class) | {ta["commit_cold"]:.1f} s |
+| Re-commit, nothing changed | {ta["commit_no_change"]:.1f} s |
+| Re-commit after one file changed | {ta["commit_after_one_change"]:.1f} s |
+| `verify` full / 5 % sample / quick | {ta["verify_full"]:.1f} s / {ta["verify_sample_5pct"]:.2f} s / {ta["verify_quick"]:.1f} s |
+| `manifest.json` / `index.jsonl.gz` vs data | {ma["sizes_bytes"]["manifest.json"] / 1024:.1f} KB / {ma["sizes_bytes"]["index.jsonl.gz"] / 1e6:.1f} MB vs {ma["sizes_bytes"]["data"] / 1e6:.1f} MB |
+
+## Part B: coco128 (real images)
+
+| Check | |
+|---|:-:|
+{chk(B["checks"])}
+
+{gb["images"]} JPEGs in {gb["distinct_resolutions"]} different resolutions (most common: {", ".join(f"{k} ×{v}" for k, v in gb["top_resolutions"])}),
+all read correctly by the probe. With no splits given, mlfingerprint hash-split the folder {", ".join(f"{k} {v}" for k, v in mb_["splits"].items())} files and kept
+every image in the same split as its label file. Flipping one byte inside one JPEG was caught by `verify`.
+
+**Found and fixed by this run:** COCO names images by sparse numeric ids (`000000000009.jpg`, `000000000025.jpg`,
+…). The first version of mlfingerprint mistook that numbering for video frames and grouped unrelated photos into
+blocks, which skewed the split (201 / 17 / 40). Frame sequences now have to be densely or regularly numbered (frame
+counters, fixed-rate timestamps). Irregular ids are treated as independent samples, and a regression test covers it.
+
+**Not covered:** the COCO pixels (train2017 18 GB, val2017 1 GB) could not be downloaded here. Committing a COCO folder
+that includes `images/` works the same way and reports exact duplicate images across splits, but this benchmark's
+independent ground-truth checks cover the annotations only.
+"""
+    (HERE / "RESULTS.md").write_text(md)
+
 print(md)

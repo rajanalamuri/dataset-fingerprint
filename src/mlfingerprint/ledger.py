@@ -34,7 +34,7 @@ from . import __version__
 from .diff import Diff, bump_semver, compute_diff, parse_semver
 from .hashing import ALGORITHM, HashCache, digest, hash_stream
 from .modality import detect_modality, sensor_keyword
-from .probe import count_record_labels, probe_file
+from .probe import count_record_labels, count_yolo_labels, probe_file
 from .splits import (
     DEFAULT_RATIOS,
     GroupBy,
@@ -46,6 +46,7 @@ from .splits import (
     parse_ratios,
     parse_time,
     sequence_dirs,
+    sequence_steps,
     temporal_assign,
     time_from_path,
 )
@@ -795,6 +796,8 @@ class Ledger:
         modality_rules: Optional[Dict[str, Any]] = None,
         label_from: LabelFrom = "auto",
         label_column: Optional[str] = None,
+        label_format: Optional[str] = None,
+        class_names: Optional[Sequence[str]] = None,
         probe: bool = False,
         include: Optional[Sequence[str]] = None,
         exclude: Optional[Sequence[str]] = None,
@@ -826,6 +829,8 @@ class Ledger:
         modality_rules: {"radar": ["*/mmwave/**", "*.rdc"]} - override modality detection.
         label_from: 'auto' (ImageFolder-style class dirs), 'parent', 'none', or callable(path)->label.
         label_column: count record-level labels inside csv/tsv/jsonl files (NLP / tabular).
+        label_format: 'yolo' counts objects per class in YOLO/darknet .txt label files (detection,
+                   segmentation); class_names maps class ids to names (e.g. the 80 COCO classes).
         parents  : datasets this one was derived from (augmented / filtered / relabelled sets):
                    DatasetVersion objects, lock dicts, "root@version" strings, or external refs
                    such as {"type": "delta", "table": "main.ml.frames", "version": 42}.
@@ -841,6 +846,8 @@ class Ledger:
         """
         if mode not in MODES:
             raise FingerprintError("mode must be " + " | ".join(MODES))
+        if label_format not in (None, "yolo"):
+            raise FingerprintError("label_format must be None or 'yolo'")
         if augmentation not in ("warn", "error", "ignore"):
             raise FingerprintError("augmentation must be warn | error | ignore")
         parent_locks, parent_versions = self._resolve_parents(parents)
@@ -940,7 +947,13 @@ class Ledger:
                 if meta:
                     r["meta"] = meta
             ext = r["source_path"].rsplit(".", 1)[-1].lower()
-            if content_checks and ext in ("jsonl", "ndjson", "csv", "tsv", "txt") and r["size"] <= (256 << 20):
+            yolo = label_format == "yolo" and ext == "txt"
+            if yolo:  # box coordinates are not "records": never line-hash them for contamination
+                yc = count_yolo_labels(src, r["source_path"])
+                if yc:
+                    names = list(class_names or [])
+                    r.setdefault("meta", {})["label_counts"] = {(names[k] if k < len(names) else str(k)): v for k, v in sorted(yc.items())}
+            elif content_checks and ext in ("jsonl", "ndjson", "csv", "tsv", "txt") and r["size"] <= (256 << 20):
                 with src.open(r["source_path"], "rb") as f:
                     r["_lines"] = _norm_line_hashes(f, skip_header=ext in ("csv", "tsv"))
             if label_column and r["modality"] in ("text", "tabular"):
@@ -1074,7 +1087,7 @@ class Ledger:
             d,
             bump_used,
             extra,
-            label_column,
+            f"column:{label_column}" if label_column else ("yolo:objects" if label_format == "yolo" else None),
         )
         manifest["lineage"]["parents"] = parent_locks
         if row_split:
@@ -1190,11 +1203,12 @@ class Ledger:
         if group_by is None:
             return [r["key_rest"] for r in rows], "file"
         seqs = sequence_dirs([r["key_rest"] for r in rows])
+        steps = sequence_steps([r["key_rest"] for r in rows])
         need = min(20, max(1, len(rows) // 2))
         plan = [(0, 100, "auto:recording"), (1, 100, "auto:sequence"), (1, 50, "auto:sequence"), (1, 25, "auto:sequence"), (1, 10, "auto:sequence")]
         best = None
         for level, block, name in plan:
-            keys = [auto_group_key(r["key_rest"], seqs, "label" in r, level, block) for r in rows]
+            keys = [auto_group_key(r["key_rest"], seqs, "label" in r, level, block, steps) for r in rows]
             n = len(set(keys))
             label = name if block == 100 else f"{name}(block={block})"
             if n >= need:
@@ -1348,7 +1362,7 @@ class Ledger:
         if all_labels:
             manifest["metadata"]["num_classes"] = len(all_labels)
             manifest["metadata"]["label_source"] = (
-                f"column:{label_column}" if label_column and any((r.get("meta") or {}).get("label_counts") for r in index) else "path"
+                label_column if label_column and any((r.get("meta") or {}).get("label_counts") for r in index) else "path"
             )
             manifest["metadata"]["class_distribution"] = {k: round(v / n_lab, 4) for k, v in all_labels.most_common()}
         if extra:

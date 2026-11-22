@@ -196,6 +196,20 @@ def _probe_text(loc: Location, rel: str) -> Dict[str, Any]:
     return {"lines": lines, "words": words} if words else {"lines": lines}
 
 
+def count_yolo_labels(loc: Location, rel: str) -> Optional[Counter]:
+    """Objects per class id in a YOLO/darknet label file (`<class> <x> <y> <w> <h> [...]` per line)."""
+    counts: Counter = Counter()
+    try:
+        with loc.open(rel, "rb") as f:
+            for raw in f:
+                parts = raw.split()
+                if parts and parts[0].isdigit():
+                    counts[int(parts[0])] += 1
+    except Exception:
+        return None
+    return counts
+
+
 def count_record_labels(loc: Location, rel: str, column: str) -> Optional[Counter]:
     """Count values of `column` in a csv/tsv/jsonl file (record-level class balance)."""
     ext = extension(rel)

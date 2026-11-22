@@ -48,8 +48,10 @@ jobs:
   integration:
     name: integration · S3 + Azure + GCS emulators
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     env:
       STORAGE_EMULATOR_HOST: http://127.0.0.1:4443
+      PYTHONUNBUFFERED: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -65,7 +67,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          pytest -m integration -rs --cov --cov-report=xml | tee out.txt
+          python -u -m pytest -m integration -rs -v --timeout=180 --durations=10 --cov --cov-report=xml | tee out.txt
           ! grep -q "SKIPPED" out.txt
       - if: failure()
         run: docker logs azurite | tail -50; docker logs gcs | tail -50

@@ -1,0 +1,40 @@
+{
+ "windows": 10299,
+ "subjects": 30,
+ "tool_split": {
+  "strategy": null,
+  "groups": 30,
+  "subjects_in_more_than_one_split": 0,
+  "files_by_split": {
+   "test": 4527,
+   "train": 5772
+  }
+ },
+ "tool_on_random_split": {
+  "leak_rate": 0.0,
+  "recording_names_also_in_train": 30,
+  "warning": "30 recording/sequence name(s) appear in train and val/test, e.g. subject_01 - same subject or session?"
+ },
+ "accuracy": {
+  "random_window/random_forest": {
+   "mean": 0.9772,
+   "std": 0.0014
+  },
+  "random_window/logistic_regression": {
+   "mean": 0.9844,
+   "std": 0.0028
+  },
+  "subject/random_forest": {
+   "mean": 0.9318,
+   "std": 0.0169
+  },
+  "subject/logistic_regression": {
+   "mean": 0.9517,
+   "std": 0.0127
+  }
+ },
+ "accuracy_tool_split": {
+  "random_forest": 0.9373,
+  "logistic_regression": 0.9322
+ }
+}

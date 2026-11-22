@@ -1,0 +1,233 @@
+{
+ "cifair_near_duplicate": {
+  "n": 249,
+  "p5": 0.687,
+  "median": 0.93,
+  "p95": 0.987
+ },
+ "cifair_very_similar": {
+  "n": 37,
+  "p5": 0.486,
+  "median": 0.825,
+  "p95": 0.95
+ },
+ "random_pairs": {
+  "n": 500,
+  "p5": -0.257,
+  "median": 0.1,
+  "p95": 0.456
+ },
+ "threshold_p5_of_cifair_near_duplicates": 0.687,
+ "random_pairs_above_threshold": 1,
+ "review_vs_rater2": {
+  "near-duplicate|dup": 25,
+  "near-duplicate|not": 0,
+  "different|dup": 1,
+  "different|not": 3
+ },
+ "pairs": [
+  {
+   "test": "test/frog/01513.png",
+   "train": "train/frog/06451.png",
+   "dhash_distance": "0",
+   "review": "near-duplicate",
+   "ncc": 0.987
+  },
+  {
+   "test": "test/frog/04413.png",
+   "train": "train/frog/29752.png",
+   "dhash_distance": "1",
+   "review": "near-duplicate",
+   "ncc": 0.932
+  },
+  {
+   "test": "test/horse/05194.png",
+   "train": "train/horse/20016.png",
+   "dhash_distance": "1",
+   "review": "near-duplicate",
+   "ncc": 0.997
+  },
+  {
+   "test": "test/cat/09141.png",
+   "train": "train/cat/06167.png",
+   "dhash_distance": "1",
+   "review": "near-duplicate",
+   "ncc": 0.94
+  },
+  {
+   "test": "test/horse/09186.png",
+   "train": "train/horse/37082.png",
+   "dhash_distance": "1",
+   "review": "near-duplicate",
+   "ncc": 0.999
+  },
+  {
+   "test": "test/automobile/06173.png",
+   "train": "train/automobile/04039.png",
+   "dhash_distance": "2",
+   "review": "near-duplicate",
+   "ncc": 0.996
+  },
+  {
+   "test": "test/deer/02925.png",
+   "train": "train/deer/36552.png",
+   "dhash_distance": "2",
+   "review": "near-duplicate",
+   "ncc": 0.925
+  },
+  {
+   "test": "test/deer/03095.png",
+   "train": "train/deer/01373.png",
+   "dhash_distance": "2",
+   "review": "near-duplicate",
+   "ncc": 0.988
+  },
+  {
+   "test": "test/frog/00311.png",
+   "train": "train/frog/43661.png",
+   "dhash_distance": "2",
+   "review": "near-duplicate",
+   "ncc": 0.884
+  },
+  {
+   "test": "test/frog/07163.png",
+   "train": "train/frog/07252.png",
+   "dhash_distance": "2",
+   "review": "near-duplicate",
+   "ncc": 0.952
+  },
+  {
+   "test": "test/cat/03572.png",
+   "train": "train/cat/08286.png",
+   "dhash_distance": "2",
+   "review": "near-duplicate",
+   "ncc": 0.979
+  },
+  {
+   "test": "test/deer/02406.png",
+   "train": "train/deer/28213.png",
+   "dhash_distance": "2",
+   "review": "near-duplicate",
+   "ncc": 0.993
+  },
+  {
+   "test": "test/airplane/04937.png",
+   "train": "train/airplane/05994.png",
+   "dhash_distance": "3",
+   "review": "near-duplicate",
+   "ncc": 0.976
+  },
+  {
+   "test": "test/airplane/05762.png",
+   "train": "train/airplane/01711.png",
+   "dhash_distance": "3",
+   "review": "near-duplicate",
+   "ncc": 0.981
+  },
+  {
+   "test": "test/deer/02925.png",
+   "train": "train/deer/41148.png",
+   "dhash_distance": "3",
+   "review": "near-duplicate",
+   "ncc": 0.976
+  },
+  {
+   "test": "test/airplane/04037.png",
+   "train": "train/airplane/04337.png",
+   "dhash_distance": "3",
+   "review": "near-duplicate",
+   "ncc": 0.978
+  },
+  {
+   "test": "test/horse/09020.png",
+   "train": "train/horse/49063.png",
+   "dhash_distance": "3",
+   "review": "near-duplicate",
+   "ncc": 0.86
+  },
+  {
+   "test": "test/airplane/02909.png",
+   "train": "train/airplane/04651.png",
+   "dhash_distance": "4",
+   "review": "different",
+   "ncc": 0.352
+  },
+  {
+   "test": "test/airplane/06574.png",
+   "train": "train/airplane/04651.png",
+   "dhash_distance": "4",
+   "review": "different",
+   "ncc": -0.129
+  },
+  {
+   "test": "test/frog/08150.png",
+   "train": "train/frog/27595.png",
+   "dhash_distance": "4",
+   "review": "near-duplicate",
+   "ncc": 0.95
+  },
+  {
+   "test": "test/frog/06547.png",
+   "train": "train/frog/32537.png",
+   "dhash_distance": "4",
+   "review": "near-duplicate",
+   "ncc": 0.9
+  },
+  {
+   "test": "test/truck/02899.png",
+   "train": "train/truck/27807.png",
+   "dhash_distance": "4",
+   "review": "near-duplicate",
+   "ncc": 0.748
+  },
+  {
+   "test": "test/airplane/04387.png",
+   "train": "train/bird/47563.png",
+   "dhash_distance": "4",
+   "review": "different",
+   "ncc": 0.154
+  },
+  {
+   "test": "test/bird/02564.png",
+   "train": "train/bird/43135.png",
+   "dhash_distance": "4",
+   "review": "near-duplicate",
+   "ncc": 0.897
+  },
+  {
+   "test": "test/airplane/09482.png",
+   "train": "train/airplane/10589.png",
+   "dhash_distance": "4",
+   "review": "near-duplicate",
+   "ncc": 0.967
+  },
+  {
+   "test": "test/cat/03391.png",
+   "train": "train/cat/44103.png",
+   "dhash_distance": "4",
+   "review": "near-duplicate",
+   "ncc": 0.875
+  },
+  {
+   "test": "test/frog/05761.png",
+   "train": "train/frog/23269.png",
+   "dhash_distance": "4",
+   "review": "near-duplicate",
+   "ncc": 0.953
+  },
+  {
+   "test": "test/truck/02807.png",
+   "train": "train/truck/25507.png",
+   "dhash_distance": "4",
+   "review": "near-duplicate",
+   "ncc": 0.969
+  },
+  {
+   "test": "test/airplane/05587.png",
+   "train": "train/airplane/31635.png",
+   "dhash_distance": "4",
+   "review": "different",
+   "ncc": 0.88
+  }
+ ]
+}

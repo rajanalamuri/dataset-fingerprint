@@ -225,3 +225,71 @@ count anyone can check, not a weighted score. **Effective size** is what is left
   on a flat background matches 47–57 % of test images to *some* training image. The commit now says so
   (`near_duplicates_uninformative`) instead of reporting a fake leak; the confirmed rate is unaffected.
 - `max_leak_rate=0.005` (CLI `--max-leak-rate 0.5%`) makes the commit fail above 0.5 %, for CI.
+
+# Does the leakage matter? (four domains)
+
+## Images: CIFAR-10 near-duplicates (3 seeds, 12 epochs, small CNN)
+
+The same 310 test images (ciFAIR's 286 + the 24 found here) scored with a model trained on the full training set,
+and with one trained after removing their 302 matching training images.
+
+| Test images | Trained on full train set | Trained with the duplicates removed |
+|---|---:|---:|
+| The 310 leaked test images | **97.3%** | **96.6%** |
+| The other 9,690 test images | 85.6% | 85.6% |
+| All 10,000 | 85.9% | 85.9% |
+| ↳ the 24 duplicates missing from ciFAIR | 93.1% | 93.1% |
+| *1-nearest-neighbour on pixels (memorises):* the 310 leaked test images | **96.5%** | **64.8%** |
+| *1-NN:* all 10,000 | 42.3% | 41.2% |
+
+**Read this carefully.** The leaked images are *easy*: even with their duplicates removed the CNN gets ~96 % of them right
+against ~86 % for the rest, so comparing leaked with clean images overstates the effect ~15-fold. The causal effect of the
+duplicate is what changes when it is removed: under one point for a regularised CNN trained for 12 epochs, about 30 points for
+a model that memorises (1-NN). How much a leak inflates a score depends on how much the model memorises; checking the data
+is the only way to know without retraining.
+
+## Sensors: UCI HAR, windows of the same subject (10,299 windows, 30 subjects, 5 repeats)
+
+| Split | Random forest | Logistic regression |
+|---|---:|---:|
+| Random windows (what a generic splitter does) | 97.7% ± 0.1% | 98.4% ± 0.3% |
+| By subject | 93.2% ± 1.7% | 95.2% ± 1.3% |
+
+dataset-fingerprint on one folder per subject: 30 groups, **0 subjects split
+apart**. Handed a random window split as `train/` and `test/` folders, it flags all
+30 subjects as appearing on both sides.
+
+## Audio: ESC-50, takes cut from the same source clip (2,000 clips from 1,524 sources, 5 repeats)
+
+| Split | Random forest | Logistic regression |
+|---|---:|---:|
+| Random files | 58.3% ± 1.7% | 63.8% ± 0.9% |
+| Grouped by source clip | 48.7% ± 2.7% | 54.7% ± 2.3% |
+
+**Found and fixed by this experiment:** before it, dataset-fingerprint grouped ESC-50 file by file, and takes of
+119 of 319 multi-take clips landed on both sides.
+Take/part markers (`-A-`, `_part2`, `_L`) are now stripped to form a source key: 3 clips still cross,
+because their takes are filed under two different classes. That turns out to be true of the official folds as well:
+**4 source clips sit in two official folds, each under two different labels**
+(131943, 134049, 209698, 234879).
+
+## Text: exact test records also in train
+
+| Dataset | Test records | Also in train | Leak rate | … with a different label | Accuracy on leaked / clean |
+|---|---:|---:|---:|---:|---|
+| AG News | 7,600 | 11 | 0.14% | 1 | 82% / 92.4% |
+| TREC-6 | 500 | 11 | 2.20% | 1 | 91% / 88.3% |
+| SST-2 | 1,821 | 2 | 0.11% | 0 | 100% / 81.4% |
+| SST-5 | 2,210 | 2 | 0.09% | 0 | 100% / 40.7% |
+
+Text benchmarks are nearly clean; TREC-6 is the exception at 2.2 % of its 500 test questions. Too few to move the score.
+
+## Second rater for the 24 CIFAR duplicates
+
+A shift-tolerant normalised cross-correlation of grayscale pixels, calibrated on ciFAIR's own labels (5th percentile of its
+near-duplicates = 0.687; 1 of 500 random pairs exceed it), agrees with the visual review on
+28 of 29 pairs: all 25 near-duplicate pairs (24 test images), and 3 of 4 rejections. The one
+disagreement is a similar runway scene (NCC 0.88) that ciFAIR's "very similar" category would also have counted.
+
+Reproduce: `bash benchmarks/experiments/download_experiments.sh .bench && export BENCH_DATA=.bench`, then run the scripts in
+`benchmarks/experiments/`.

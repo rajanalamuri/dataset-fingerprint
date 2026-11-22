@@ -1178,7 +1178,7 @@ class Ledger:
         rests = [r["key_rest"] for r in rows]
         _seqs, _steps = sequence_dirs(rests), sequence_steps(rests)
         rec_keys = [auto_group_key(r["key_rest"], _seqs, "label" in r, 0, 100, _steps) for r in rows]
-        rec_keys = [k if k.startswith(("rec:", "seq:")) else "" for k in rec_keys]
+        rec_keys = [k if k.startswith(("rec:", "seq:", "src:")) else "" for k in rec_keys]
         train_rec = {k for r, k in zip(rows, rec_keys) if k and r["split"] == "train"}
         same_rec = sorted({k for r, k in zip(rows, rec_keys) if k and r["split"] not in ("train", "shared") and k in train_rec})
         if temporal and strategy.get("time_ranges", {}).get("train"):
@@ -1188,7 +1188,8 @@ class Ledger:
         if same_rec:
             leakage["recording_names_also_in_train"] = {"count": len(same_rec), "examples": [k[4:] for k in same_rec[:5]]}
             checks["warnings"].append(
-                f"{len(same_rec)} recording/sequence name(s) appear in train and val/test, e.g. {same_rec[0][4:]} - same subject or session?"
+                f"{len(same_rec)} recording/sequence/source name(s) appear in train and val/test, "
+                f"e.g. {same_rec[0][4:]} - same subject, session or source clip?"
             )
             _log(f"dataset-fingerprint: WARNING {checks['warnings'][-1]}", quiet)
         checks["quality"]["leakage"] = leakage

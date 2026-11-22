@@ -16,20 +16,18 @@
 \begin{abstract}
 Train/test leakage keeps resurfacing in published benchmarks, yet the tools teams use to version
 datasets record \emph{what} the data is, not whether its splits are sound. We argue that split
-hygiene belongs in the same step that fingerprints a dataset: a commit that writes an immutable
-manifest should also refuse, or loudly flag, leaky splits. We present \textsc{dataset-fingerprint}, an
-open-source library that versions datasets of any modality on any object store as a manifest of
-content hashes, and at commit time keeps recordings and frame sequences together, detects
-augmented copies, exact and near-duplicate files, repeated text records, temporal overlap and
-leaks from a parent dataset's evaluation split, and reports a \emph{leak rate}: the share of
-evaluation files provably shared with training. On MNIST, Fashion-MNIST and the 122k-file COCO 2017
-annotation set every reported count matches independently computed ground truth, and 100 planted
-leaks are recovered exactly; a full commit
-costs 23--35\,s on two vCPUs and an unchanged re-commit 7--23\,s. Its 64-bit perceptual check,
-run on CIFAR-10, flags 91 test images with a near-duplicate in the training set; 63 are in the
-ciFAIR list, and our review finds 24 of the remaining 28 are also duplicates that ciFAIR-10 still
-contains. Recall against ciFAIR is low (22\%), which we report as the price of a check cheap
-enough to run on every commit.
+hygiene belongs in the commit that fingerprints a dataset, and present \textsc{dataset-fingerprint},
+an open-source library that versions data of any modality on any object store and, at commit time,
+keeps recordings, frame sequences and takes of one source together, flags copies, augmentations,
+near-duplicates, repeated text records and temporal overlap, and reports an auditable \emph{leak rate}.
+Every count it reports on MNIST, Fashion-MNIST and COCO 2017 matches independent ground truth, and 100
+planted leaks are recovered exactly. In four domains we measure what the leaks it targets cost.
+Splitting UCI HAR windows at random instead of by subject reports 97.7\% instead of 93.2\% accuracy
+(three times fewer errors); splitting ESC-50 takes of one source clip inflates accuracy by 9--10 points,
+and four source clips straddle ESC-50's own folds. On CIFAR-10, the perceptual check finds 24 duplicates
+that ciFAIR-10 still contains; removing duplicates moves a regularised CNN by under one point on the
+affected images but a memorising 1-NN by 32 points. Leaked images are also intrinsically easy, so
+comparing leaked with clean test images overstates the effect. Text benchmarks are nearly clean.
 \end{abstract}
 
 \begin{CCSXML}
@@ -62,12 +60,12 @@ the path, the split and the lineage of every file, which is exactly what most le
 need}. Running them there costs little and puts the result in the manifest that the training
 run pins.
 
-\textbf{Contributions.} (1) A manifest-based dataset versioning design where split hygiene is part
-of the commit (\S\ref{sec:design}); (2) group-aware automatic splitting and checks that work across
-images, audio, video frames, sensor streams, text and tables on local disk, S3, Azure Blob, GCS and
-Databricks volumes; (3) an evaluation against independent ground truth on four public datasets,
-including a reproduction of the ciFAIR near-duplicate audit that surfaces duplicates its list
-misses (\S\ref{sec:eval}). The library is MIT-licensed \cite{dataset-fingerprint}.
+\textbf{Contributions.} (1) A manifest-based versioning design in which split hygiene is part of the
+commit, with a leak rate that counts rather than scores (\S\ref{sec:design}); (2) group-aware automatic
+splitting and checks across images, audio, sensor streams, text and tables on local disk and object
+stores; (3) an evaluation against independent ground truth, and a measurement of what the targeted
+leaks cost in four domains, including duplicates and fold overlaps that two curated benchmarks still
+contain (\S\ref{sec:eval}). The library is MIT-licensed \cite{dataset-fingerprint}.
 
 \section{Design}\label{sec:design}
 \textbf{Version the description, not the data.} A version is an immutable folder holding an
@@ -86,7 +84,9 @@ removed or modified: patch) and can be tagged and checked out.
 stable hash of a \emph{group key}, so the assignment never changes as data is added. The default
 key keeps together what must not be separated: a recording or session folder, a frame sequence
 (detected only if numbering is dense or regular, so sparse image ids are not mistaken for frames),
-an image and its label file, and an augmented copy and its original. Temporal splits by ratio or
+an image and its label file, an augmented copy and its original, and takes or parts cut from one
+source (\texttt{1-100038-A-14}, \texttt{rec7\_part2}). When splits are given as folders, a recording,
+sequence or source name that appears in both train and test is reported. Temporal splits by ratio or
 cutoff put the oldest recordings in train; row-level cutoffs inside one long series are stored in
 the manifest.
 
@@ -117,85 +117,90 @@ Azure and GCS emulators. Paths in an index are validated before checkout, a tamp
 credentials are never written to manifests, and loaders never unpickle data.
 
 \section{Evaluation}\label{sec:eval}
-All runs used two vCPUs on local disk. Ground truth was computed from the raw dataset files without
-\textsc{dataset-fingerprint}.
+All runs used two vCPUs. Ground truth was computed from the raw dataset files without
+\textsc{dataset-fingerprint}; scripts, results and the reviewed pairs are in the repository.
 
 \textbf{Correctness and cost.} On MNIST \cite{lecun1998mnist} and Fashion-MNIST \cite{xiao2017fashion}
 (70,000 PNGs each, raw files checked against published MD5s), file counts, per-split class counts and
-the number of cross-split duplicates (zero for both) matched pixel-level ground truth; a one-pixel
-edit to one test image was caught by \texttt{verify}, and a flipped copy of a test image placed in train
-was flagged. On COCO 2017 \cite{lin2014coco} (122,224 YOLO label files), the 36,335 validation objects
-counted equal the non-crowd count of the official \texttt{instances\_val2017.json}. Table~\ref{tab:cost}
-gives costs; the index costs about 57 bytes per file compressed.
+cross-split duplicates (none) matched pixel-level ground truth; a one-pixel edit was caught by
+\texttt{verify}. On COCO 2017 \cite{lin2014coco} (122,224 YOLO label files), the 36,335 validation objects
+counted equal the non-crowd count of \texttt{instances\_val2017.json}. To test the leak rate we planted 50
+test images in train under new names and 50 flipped test images as \texttt{<name>\_hflip.png}: both
+datasets reported exactly 1.00\% (100/10,000), split 50/50 by type. A first commit of 70k files takes
+23\,s, an unchanged re-commit 8\,s and a full \texttt{verify} 6\,s (COCO: 35\,s, 23\,s, 10\,s); the index
+costs about 57 bytes per file.
 
 \begin{table}[t]
-\caption{Wall-clock cost on two vCPUs.}\label{tab:cost}
+\caption{What the targeted leaks cost. Accuracy (mean over 5 splits, or 3 training seeds for the CNN).
+RF: random forest; LR: logistic regression.}\label{tab:impact}
 \small
-\begin{tabular}{@{}lrr@{}}
+\begin{tabular}{@{}llrr@{}}
 \toprule
- & MNIST (70k) & COCO ann. (122k) \\
+Data & Leaky vs.\ clean split & Leaky & Clean \\
 \midrule
-First commit (hash everything) & 23.3\,s & 35.1\,s \\
-Re-commit, nothing changed & 8.1\,s & 23.4\,s \\
-\texttt{verify}, full re-hash & 5.7\,s & 9.9\,s \\
-\texttt{verify}, 5\% sample & 0.24\,s & 0.88\,s \\
+UCI HAR (RF) & random windows vs.\ by subject & 97.7 & 93.2 \\
+UCI HAR (LR) & random windows vs.\ by subject & 98.4 & 95.2 \\
+ESC-50 (RF) & random files vs.\ by source clip & 58.3 & 48.7 \\
+ESC-50 (LR) & random files vs.\ by source clip & 63.8 & 54.7 \\
+\midrule
+CIFAR-10, 310 & CNN: dups in train vs.\ removed & 97.3 & 96.6 \\
+\quad leaked images & 1-NN: dups in train vs.\ removed & 96.5 & 64.8 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Leak rate.} MNIST, Fashion-MNIST and CIFAR-10 have a leak rate of 0.00\% at the byte
-level. To check the rate itself we planted 100 leaks in each of MNIST and Fashion-MNIST: 50 test
-images copied into train under new names and 50 flipped test images saved as
-\texttt{<name>\_hflip.png}. Both commits reported exactly 1.00\% (100/10,000), split 50/50 by type,
-with an effective test size of 9,900.
+\textbf{Sensors.} UCI HAR \cite{anguita2013har} has 10,299 windows of 2.56\,s with 50\% overlap from 30 subjects (a public mirror;
+counts match the official 7,352/2,947 split). A random window split, what a generic splitter does, reports
+2.3\% error for a random forest against 6.8\% with subjects held out (Table~\ref{tab:impact}). Committed as
+one folder per subject, \textsc{dataset-fingerprint} formed 30 groups and split no subject; handed a random
+window split as \texttt{train/} and \texttt{test/} folders, it reported all 30 subjects on both sides. The
+leak rate stays 0\%: windows share time, not bytes, so this is a warning rather than a counted leak.
 
-\textbf{A heuristic that broke.} On coco128, the first version read COCO's sparse numeric image
-ids as video frames and grouped unrelated photos into blocks, skewing a hash split to 201/17/40.
-Requiring dense or regular numbering fixed it (193/38/27). Automatic grouping is a heuristic; the
-manifest records the strategy used so that it can be inspected.
+\textbf{Audio.} ESC-50 \cite{piczak2015esc} has 2,000 five-second clips cut from 1,524 Freesound recordings; 795 come from
+recordings with several takes. Splitting files at random instead of by source inflates accuracy by 9--10
+points. This experiment exposed a gap in our tool: its default grouping treated each file separately and
+let takes of 119 of 319 multi-take sources straddle the split. Stripping take and part markers from names
+to form a source key brought this to 3. Those 3 are takes filed under two different classes, and the
+same holds in the official data: \emph{four source recordings sit in two of ESC-50's five official folds,
+each under two labels}.
 
-\textbf{Near-duplicates on CIFAR-10.} Barz and Denzler found 286 CIFAR-10 \cite{krizhevsky2009cifar}
-test images with a near-duplicate in the training set, using CNN features and manual review, and
-replaced them to build ciFAIR-10 \cite{barz2020cifair}. We committed the 60,000 images as PNGs with
-the near-duplicate check enabled (Table~\ref{tab:cifar}). At the default $T{=}4$, 91 test images are
-flagged and 63 of them are on the ciFAIR list. We inspected the other 28 pairs: 24 are the same photograph
-as a training image after a colour, contrast or grayscale change, and 4 are different photos of
-similar scenes (Figure~\ref{fig:pairs}). Because ciFAIR-10 keeps every unlisted CIFAR-10 test image unchanged (we verified the
-9,714 kept images are pixel-identical), \emph{those 24 duplicates remain in ciFAIR-10}. The
-review was done by one person; the pairs are published for checking.
+\textbf{Text.} Exact test records also in train, after normalising case and spacing: AG News \cite{zhang2015charcnn} 11 of 7,600
+(0.14\%), TREC-6 \cite{li2002trec} 11 of 500 (2.2\%), SST-2 \cite{socher2013sst} 2 of 1,821, SST-5 2 of 2,210; one leaked record in AG News and one
+in TREC carry a different label in train. Too few to move scores.
 
-\begin{table}[t]
-\caption{CIFAR-10 test images flagged by dHash distance $\le T$ against the ciFAIR list (286 images).}\label{tab:cifar}
-\small
-\begin{tabular}{@{}rrrrr@{}}
-\toprule
-$T$ & Flagged & On ciFAIR list & Recall & Search \\
-\midrule
-2 & 34 & 22 & 8\% & 0.2\,s \\
-4 & 91 & 63 & 22\% & 1.2\,s \\
-6 & 169 & 102 & 36\% & 8.6\,s \\
-8 & 360 & 153 & 54\% & 38.7\,s \\
-\bottomrule
-\end{tabular}
-\end{table}
+\textbf{Images.} Barz and Denzler found 286 CIFAR-10 \cite{krizhevsky2009cifar} test images with a
+near-duplicate in the training set, using CNN features and manual review, and replaced them to build
+ciFAIR-10 \cite{barz2020cifair}. With the perceptual check at $T{=}4$, 91 test images are flagged, 63 of
+them on the ciFAIR list. Of the other 28, our visual review found 24 to be the same photograph after a
+colour, contrast or grayscale change (Figure~\ref{fig:pairs}). An independent automatic rater, a
+shift-tolerant correlation of grayscale pixels calibrated on ciFAIR's own labels, agrees on 28 of 29
+pairs; the exception is a similar runway scene that ciFAIR's ``very similar'' category would also count.
+ciFAIR-10 keeps every unlisted test image unchanged (we verified the 9,714 kept images are
+pixel-identical), so \emph{those 24 duplicates remain in ciFAIR-10}. Recall against ciFAIR is only 22\%
+(54\% at $T{=}8$, where precision falls): a 64-bit hash of a $32{\times}32$ thumbnail misses crops and
+re-shoots. The check adds 28\,s to a cold commit of 60,000 images and 3\,s to a warm one.
 
 \begin{figure}[t]
 \includegraphics[width=\columnwidth]{cifar_pairs.png}
-\caption{Six of the 24 flagged pairs missing from the ciFAIR list. Top: CIFAR-10 test images
+\caption{Six of the 24 duplicates missing from the ciFAIR list. Top: CIFAR-10 test images
 9186, 6173, 3572, 4937, 2899, 4413 (all kept in ciFAIR-10). Bottom: their training matches
-37082, 4039, 8286, 5994, 27807, 29752. dHash distances 1--4.}\label{fig:pairs}
+37082, 4039, 8286, 5994, 27807, 29752.}\label{fig:pairs}
 \end{figure}
 
-The precision at $T{=}4$ is therefore about 96\% (87/91, taking listed pairs as correct), but recall
-against ciFAIR is only 22\%: a 64-bit hash of a $32{\times}32$ thumbnail misses crops and
-re-shoots that CNN features catch, and raising $T$ trades precision away quickly. The check adds 28\,s to
-a cold commit of 60,000 images (7.5\,s to 35.8\,s) and 3\,s to a warm one, since hashes are cached by
-content. We see it as a guard that runs on every commit, not a replacement for an embedding search
-when a benchmark is built. It also fails outright on some data: on MNIST and Fashion-MNIST, where every
-image is a small centred object on a flat background, the same threshold matches 47--57\% of test
-images to some training image. The commit detects this (more than 10\% of a split matched) and labels
-the near-duplicate count uninformative instead of reporting it as leakage; the confirmed leak rate
-is unaffected.
+\textbf{How much do these duplicates matter?} We trained a small CNN three times on the full training set
+and three times with the 302 matching training images removed, and scored the same 310 leaked test
+images (Table~\ref{tab:impact}). The CNN gets 97.3\% of them right with their duplicates and 96.6\%
+without: they are easy images, far above the 85.6\% it scores on the rest either way. A naive comparison
+of leaked with clean images would suggest a 12-point inflation; the causal effect for this regularised,
+briefly trained model is under one point. A model that memorises, 1-nearest-neighbour on pixels, drops
+from 96.5\% to 64.8\% on the same images. Whether a leak inflates a score depends on the model, and
+checking the data is the only way to know without retraining.
+
+\textbf{Heuristics that broke.} Besides the ESC-50 gap, COCO's sparse numeric image ids were first read
+as video frames (fixed by requiring dense or regular numbering), and the perceptual hash is useless on
+MNIST-style images, matching 47--57\% of test images to some training image; the commit now labels such
+counts uninformative instead of reporting them. The manifest records the grouping used so it can be
+inspected.
 
 \section{Related Work}
 \textbf{Leakage.} Kaufman et al.\ formalised leakage in data mining \cite{kaufman2012leakage}, and
@@ -213,11 +218,11 @@ lakeFS and Delta Lake version files or tables \cite{dvc,lakefs,armbrust2020delta
 Croissant describe datasets \cite{gebru2021datasheets,akhtar2024croissant}. None of them, to our
 knowledge, ties group-aware splitting and cross-modal leakage checks to the act of versioning.
 
-\section{Limitations and Next Steps}
-The checks are lexical and hash-based: they catch copies, not semantic overlap, and augmentation
-detection relies on names and folders. Timings come from a small machine on local disk; object stores
-add per-file latency. We have not yet measured how much the leaks we find inflate model scores, nor
-audited sensor datasets where subject and recording leakage is common; both are the next experiments.
+\section{Limitations}
+The checks are lexical and hash-based: they catch copies, not semantic overlap, and grouping and
+augmentation detection rely on names and folders, as the ESC-50 gap shows. The CNN experiment uses a
+small model trained briefly on two CPUs; longer training memorises more. Timings come from a small
+machine on local disk; object stores add per-file latency.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{refs}

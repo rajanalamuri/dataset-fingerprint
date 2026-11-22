@@ -1,0 +1,54 @@
+{
+ "files": 2000,
+ "source_clips": 1524,
+ "files_from_multi_take_clips": 795,
+ "tool": {
+  "multi_take_clips": 319,
+  "clips_split_across_train_test_default_grouping": 3,
+  "clips_split_across_train_test_group_by_regex": 0,
+  "default_group_strategy": {
+   "type": "hash",
+   "ratios": {
+    "train": 0.8,
+    "test": 0.2
+   },
+   "group_by": "auto:recording",
+   "seed": "mlfingerprint",
+   "groups": 1528
+  },
+  "before_source_grouping_fix": {
+   "clips_split_across_train_test_default_grouping": 119,
+   "groups": 2000,
+   "note": "0.1.0 pre-release grouped ESC-50 file by file; takes of 119 of 319 multi-take clips straddled train/test"
+  },
+  "remaining_after_fix": "3 clips: their takes carry different class (and fold) ids in the file name, so the name-based key differs; group_by=r'^\\d-(\\d+)-' groups them"
+ },
+ "accuracy": {
+  "random_file/random_forest": {
+   "mean": 0.583,
+   "std": 0.0172
+  },
+  "random_file/logistic_regression": {
+   "mean": 0.638,
+   "std": 0.0093
+  },
+  "grouped_by_clip/random_forest": {
+   "mean": 0.4872,
+   "std": 0.0268
+  },
+  "grouped_by_clip/logistic_regression": {
+   "mean": 0.547,
+   "std": 0.0232
+  }
+ },
+ "official_folds": {
+  "source_clips_in_two_folds": 4,
+  "source_clips_with_two_classes": 4,
+  "clips": [
+   "131943",
+   "134049",
+   "209698",
+   "234879"
+  ]
+ }
+}

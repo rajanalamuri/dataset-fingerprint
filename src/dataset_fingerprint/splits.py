@@ -190,11 +190,32 @@ def auto_group_key(
             return "seq:" + scope
         return "blk:" + (scope + "/" if scope else "") + _block(stem, block, (steps or {}).get("/".join(dirs), 1))
     parent = "/".join(dirs)
+    src = source_stem(stem)
+    if src != stem:  # several takes / parts / channels cut from one source recording
+        return "src:" + (parent + "/" if parent else "") + src
     if not labeled and parent in seq_dirs:
         if level == 0:
             return "seq:" + parent
         return "blk:" + parent + "/" + _block(stem, block, (steps or {}).get(parent, 1))
     return "file:" + (parent + "/" if parent else "") + stem
+
+
+_VARIANT_TOKEN = re.compile(r"^(?:[A-Za-z]|(?:take|part|seg|segment|chunk|clip|frag|fragment|piece|cut)\d+)$", re.I)
+_TOKEN_SPLIT = re.compile(r"([-_. ])")
+
+
+def source_stem(stem: str) -> str:
+    """Drop take/part markers so fragments cut from one source share a key:
+    '1-100038-A-14' -> '1-100038-14' (ESC-50 takes), 'rec7_part2' -> 'rec7', 'IMG_0001_L' -> 'IMG_0001'."""
+    parts = _TOKEN_SPLIT.split(stem)
+    toks = parts[0::2]
+    keep = [i for i, t in enumerate(toks) if not _VARIANT_TOKEN.match(t)]
+    if len(keep) == len(toks) or not keep:
+        return stem
+    out = toks[keep[0]]
+    for b in keep[1:]:
+        out += parts[2 * b - 1] + toks[b]
+    return out
 
 
 # --------------------------------------------------------------------------- #

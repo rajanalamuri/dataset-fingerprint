@@ -36,6 +36,7 @@ from .hashing import ALGORITHM, HashCache, digest, hash_stream
 from .modality import detect_modality, sensor_keyword
 from .probe import count_record_labels, count_yolo_labels, probe_file
 from .splits import (
+    DEFAULT_SEED,
     DEFAULT_RATIOS,
     GroupBy,
     auto_group_key,
@@ -53,7 +54,7 @@ from .splits import (
 from .splits import PAIR_DIRS
 from .storage import Location, UnsafePathError, copy_file
 
-SCHEMA = "mlfingerprint/manifest@1"
+SCHEMA = "dataset-fingerprint/manifest@1"
 MANIFEST = "manifest.json"
 INDEX = "index.jsonl.gz"
 USAGE = "usage.jsonl"
@@ -111,7 +112,7 @@ class _Progress:
 
 
 def _who() -> Dict[str, Any]:
-    info: Dict[str, Any] = {"tool": f"mlfingerprint {__version__}"}
+    info: Dict[str, Any] = {"tool": f"dataset-fingerprint {__version__}"}
     try:
         info["user"] = getpass.getuser()
     except Exception:  # no login name in some containers  # nosec B110
@@ -561,7 +562,7 @@ class DatasetVersion:
 
         with ThreadPoolExecutor(max_workers=max(1, workers)) as ex:
             list(ex.map(one, rows))
-        dst.write_text(".mlfingerprint.json", json.dumps(self.lock(), indent=2))
+        dst.write_text(".dataset-fingerprint.json", json.dumps(self.lock(), indent=2))
         return dst.uri()
 
     def index_tampered(self) -> List[str]:
@@ -872,7 +873,7 @@ class Ledger:
         mode: str = "reference",
         split: Union[str, Dict[str, float], Sequence[float], None] = "auto",
         group_by: GroupBy = "auto",
-        seed: str = "mlfingerprint",
+        seed: str = DEFAULT_SEED,
         modality_rules: Optional[Dict[str, Any]] = None,
         label_from: LabelFrom = "auto",
         label_column: Optional[str] = None,
@@ -941,7 +942,7 @@ class Ledger:
         if nd_threshold is not None and not 0 <= nd_threshold <= perceptual.MAX_THRESHOLD:
             raise FingerprintError(f"near_duplicates threshold must be 0..{perceptual.MAX_THRESHOLD}")
         if nd_threshold is not None and not perceptual.available():
-            _log("mlfingerprint: WARNING near_duplicates needs Pillow (pip install mlfingerprint[image]) - skipped", quiet)
+            _log("dataset-fingerprint: WARNING near_duplicates needs Pillow (pip install dataset-fingerprint[image]) - skipped", quiet)
             nd_threshold = None
         parent_locks, parent_versions = self._resolve_parents(parents)
         src = Location(source, source_storage_options if source_storage_options is not None else self.storage_options)
@@ -951,10 +952,10 @@ class Ledger:
         skip = [self.loc.root] if (self.loc.is_local and src.is_local) else []
         entries = list(src.walk(include=include, exclude=exclude, skip_dirs=skip))
         for sl in getattr(src, "skipped_symlinks", [])[:5]:
-            _log(f"mlfingerprint: WARNING skipped symlink pointing outside the source: {sl}", quiet)
+            _log(f"dataset-fingerprint: WARNING skipped symlink pointing outside the source: {sl}", quiet)
         if not entries:
             raise FingerprintError(f"no files found under {src.uri()}")
-        _log(f"mlfingerprint: scanning {len(entries):,} files in {src.uri()}", quiet)
+        _log(f"dataset-fingerprint: scanning {len(entries):,} files in {src.uri()}", quiet)
 
         # 1. splits ------------------------------------------------------------
         temporal = bool(time_cutoffs) or (isinstance(split, str) and split.startswith("temporal"))
@@ -1118,7 +1119,7 @@ class Ledger:
         # 4b. leakage + quality checks ---------------------------------------------------
         checks = _leakage_checks(rows, parent_versions)
         for w in checks["warnings"]:
-            _log(f"mlfingerprint: WARNING {w}", quiet)
+            _log(f"dataset-fingerprint: WARNING {w}", quiet)
         if augmentation == "error" and checks["augmentation_leaks"]:
             raise FingerprintError("augmented copies leak across splits: " + "; ".join(checks["warnings"]))
 
@@ -1138,7 +1139,7 @@ class Ledger:
                 checks["quality"]["record_overlap_with_train"] = overlap
                 msg = ", ".join(f"{v} {k} record(s)" for k, v in overlap.items())
                 checks["warnings"].append(f"{msg} also appear in train (exact, normalised) - test contamination")
-                _log(f"mlfingerprint: WARNING {checks['warnings'][-1]}", quiet)
+                _log(f"dataset-fingerprint: WARNING {checks['warnings'][-1]}", quiet)
         nd_leaked: set = set()
         if nd_threshold is not None:
             ph_rows = [r for r in rows if (r.get("meta") or {}).get("dhash")]
@@ -1157,14 +1158,14 @@ class Ledger:
                 msg = ", ".join(f"{v} {k}" for k, v in nd["with_train_match"].items())
                 ex = nd["examples"][0]
                 checks["warnings"].append(f"{msg} image(s) have a near-duplicate in train (dHash <= {nd_threshold}), e.g. {ex[0]} ~ {ex[1]}")
-                _log(f"mlfingerprint: WARNING {checks['warnings'][-1]}", quiet)
+                _log(f"dataset-fingerprint: WARNING {checks['warnings'][-1]}", quiet)
         if temporal and strategy.get("time_ranges", {}).get("train") and strategy["time_ranges"].get("test"):
             tr, te = strategy["time_ranges"]["train"], strategy["time_ranges"]["test"]
             if tr["end"] > te["start"]:
                 checks["warnings"].append(
                     f"train ends {tr['end']} after test starts {te['start']} - overlapping windows (long recordings straddle the cutoff)"
                 )
-                _log(f"mlfingerprint: WARNING {checks['warnings'][-1]}", quiet)
+                _log(f"dataset-fingerprint: WARNING {checks['warnings'][-1]}", quiet)
 
         # leak rate ---------------------------------------------------------------------
         by_type: Dict[str, set] = {"augmented_copy": checks["aug_leaked"]}
@@ -1189,7 +1190,7 @@ class Ledger:
             checks["warnings"].append(
                 f"{len(same_rec)} recording/sequence name(s) appear in train and val/test, e.g. {same_rec[0][4:]} - same subject or session?"
             )
-            _log(f"mlfingerprint: WARNING {checks['warnings'][-1]}", quiet)
+            _log(f"dataset-fingerprint: WARNING {checks['warnings'][-1]}", quiet)
         checks["quality"]["leakage"] = leakage
         if leakage.get("near_duplicates_uninformative"):
             checks["warnings"].append(
@@ -1197,10 +1198,10 @@ class Ledger:
                 "the 64-bit hash cannot tell these images apart (small, centred, low-detail images); "
                 "treat near-duplicate counts here as noise and use embeddings instead"
             )
-            _log(f"mlfingerprint: WARNING {checks['warnings'][-1]}", quiet)
+            _log(f"dataset-fingerprint: WARNING {checks['warnings'][-1]}", quiet)
         if leakage.get("leak_rate"):
             _log(
-                f"mlfingerprint: leak rate {leakage['leak_rate']:.2%} ({leakage['leaked_files']:,} of "
+                f"dataset-fingerprint: leak rate {leakage['leak_rate']:.2%} ({leakage['leaked_files']:,} of "
                 f"{leakage['evaluation_files']:,} val/test files share content or a recording with train)",
                 quiet,
             )
@@ -1217,7 +1218,7 @@ class Ledger:
         prev = self.latest()
         d = compute_diff(prev.version if prev else None, prev.records() if prev else [], "(new)", index)
         if prev and d.unchanged and not allow_empty and not version:
-            _log(f"mlfingerprint: no changes since {prev.version} - nothing to commit", quiet)
+            _log(f"dataset-fingerprint: no changes since {prev.version} - nothing to commit", quiet)
             return prev
         if version:
             semver = "%d.%d.%d" % parse_semver(version)
@@ -1233,12 +1234,12 @@ class Ledger:
         if self.loc.exists(f"{folder}/{MANIFEST}"):
             raise FingerprintError(f"{full_version} already exists - versions are immutable")
         for w in d.warnings():
-            _log(f"mlfingerprint: WARNING {w}", quiet)
+            _log(f"dataset-fingerprint: WARNING {w}", quiet)
         if strategy.get("ratios"):
             present = {r["split"] for r in index}
             for s in strategy["ratios"]:
                 if s not in present:
-                    _log(f"mlfingerprint: WARNING split '{s}' is empty - too few files/groups for the requested ratios", quiet)
+                    _log(f"dataset-fingerprint: WARNING split '{s}' is empty - too few files/groups for the requested ratios", quiet)
 
         data_loc = src if mode == "reference" else (self.loc if mode == "cas" else self.loc.child(folder))
         manifest = self._build_manifest(
@@ -1266,7 +1267,7 @@ class Ledger:
         manifest["quality"] = checks["quality"]
         manifest["lineage"]["warnings"] = manifest["lineage"]["warnings"] + checks["warnings"]
         if dry_run:
-            _log(f"mlfingerprint: dry run - would create {full_version}", quiet)
+            _log(f"dataset-fingerprint: dry run - would create {full_version}", quiet)
             return DatasetVersion(self, folder, manifest)
 
         # 6. write: data first, manifest last (a version without manifest doesn't exist)
@@ -1317,7 +1318,7 @@ class Ledger:
         if written.get("commit_id") != manifest["commit_id"]:
             raise FingerprintError(f"{full_version} was committed concurrently by another process")
         self.loc.write_text(LEDGER_META, json.dumps({"name": self.name, "schema": SCHEMA, "latest": full_version}, indent=2) + "\n")
-        _log(f"mlfingerprint: committed {full_version} ({bump_used}) fingerprint {manifest['fingerprint'][:23]}…", quiet)
+        _log(f"dataset-fingerprint: committed {full_version} ({bump_used}) fingerprint {manifest['fingerprint'][:23]}…", quiet)
         return DatasetVersion(self, folder, manifest)
 
     # -- helpers -----------------------------------------------------------------
@@ -1388,7 +1389,7 @@ class Ledger:
         # safest grouping that still has a few groups; only go per-file if there is none.
         if best and best[2] >= 3 and best[2] < len(rows):
             _log(
-                f"mlfingerprint: WARNING only {best[2]} independent groups ({best[1]}); split sizes will be "
+                f"dataset-fingerprint: WARNING only {best[2]} independent groups ({best[1]}); split sizes will be "
                 "uneven but no recording/sequence is split apart",
                 quiet,
             )
@@ -1621,12 +1622,12 @@ def record_training(
 
 
 def commit(source: str, ledger: Optional[str] = None, name: Optional[str] = None, **kw: Any) -> DatasetVersion:
-    """mlfingerprint.commit("./data", "s3://bucket/ledgers/cars", message="new batch")"""
+    """dataset_fingerprint.commit("./data", "s3://bucket/ledgers/cars", message="new batch")"""
     return Ledger(ledger, name=name, storage_options=kw.pop("storage_options", None)).commit(source, **kw)
 
 
 def load(
     ledger: Optional[str] = None, version: str = "latest", name: Optional[str] = None, storage_options: Optional[Dict[str, Any]] = None
 ) -> DatasetVersion:
-    """mlfingerprint.load("s3://bucket/ledgers/cars", "1.2.0").files("train")"""
+    """dataset_fingerprint.load("s3://bucket/ledgers/cars", "1.2.0").files("train")"""
     return Ledger(ledger, name=name, storage_options=storage_options).get(version)

@@ -1,4 +1,4 @@
-"""Reproduce the ciFAIR finding (Barz & Denzler 2020) with mlfingerprint's near-duplicate check.
+"""Reproduce the ciFAIR finding (Barz & Denzler 2020) with dataset-fingerprint's near-duplicate check.
 
 ciFAIR found 286 CIFAR-10 test images with a near-duplicate in the training set, using CNN
 features plus manual review. Here a plain 64-bit dHash + exact Hamming search runs inside
@@ -24,8 +24,8 @@ from pathlib import Path
 
 from PIL import Image
 
-import mlfingerprint as fp
-from mlfingerprint import perceptual
+import dataset_fingerprint as fp
+from dataset_fingerprint import perceptual
 
 CLASSES = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
 SHA256 = {
@@ -159,7 +159,7 @@ def main() -> None:
             "recommit_with_near_dups_warm": round(t_warm, 1),
         },
         "unchanged_recommit_same_fingerprint": v_warm.fingerprint == v.fingerprint,
-        "env": {"python": platform.python_version(), "machine": platform.machine(), "mlfingerprint": fp.__version__, "cpus": os.cpu_count()},
+        "env": {"python": platform.python_version(), "machine": platform.machine(), "dataset-fingerprint": fp.__version__, "cpus": os.cpu_count()},
     }
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_text(json.dumps(res, indent=2))

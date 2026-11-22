@@ -21,7 +21,7 @@ integration:
 security:
 	bandit -c pyproject.toml -r src
 	$(PY) -m pytest -m security
-	pip freeze --exclude-editable | grep -vi "^mlfingerprint" > .audit-req.txt && pip-audit -r .audit-req.txt --strict --no-deps --disable-pip; rm -f .audit-req.txt
+	pip freeze --exclude-editable | grep -vi "^dataset-fingerprint" > .audit-req.txt && pip-audit -r .audit-req.txt --strict --no-deps --disable-pip; rm -f .audit-req.txt
 
 build:
 	rm -rf dist && $(PY) -m build && twine check --strict dist/*

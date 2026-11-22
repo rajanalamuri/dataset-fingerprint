@@ -1,7 +1,7 @@
 import pytest
 
-from mlfingerprint import FingerprintError, Ledger
-from mlfingerprint.cli import _rate
+from dataset_fingerprint import FingerprintError, Ledger
+from dataset_fingerprint.cli import _rate
 
 
 def _w(p, data=b"x"):

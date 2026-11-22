@@ -1,5 +1,5 @@
 {
-  "title": "mlfingerprint: a lockfile for training data",
+  "title": "dataset-fingerprint: a lockfile for training data",
   "description": "Manifest-based dataset versioning with leakage-aware splits, lineage and integrity verification for any modality on any storage.",
   "upload_type": "software",
   "creators": [{"name": "Alamuri, Raj"}],

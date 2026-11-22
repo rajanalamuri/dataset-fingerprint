@@ -141,14 +141,14 @@ def hero(t: dict) -> str:
         return "".join(out)
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img"
- aria-label="mlfingerprint: a fingerprint draws itself from file hashes. A lockfile for your training data.">
+ aria-label="dataset-fingerprint: a fingerprint draws itself from file hashes. A lockfile for your training data.">
 <style>
   .bg{{fill:{t["bg"]}}}
   .r{{fill:none;stroke:{t["ink"]};stroke-width:2.6;stroke-linecap:round;stroke-dasharray:1 1;stroke-dashoffset:1;
       animation:draw {CYC}s cubic-bezier(.3,.6,.3,1) infinite}}
   @keyframes draw{{0%{{stroke-dashoffset:1;stroke:{t["ink"]}}}38%{{stroke-dashoffset:0;stroke:{t["ink"]}}}
       44%{{stroke:{t["yelD"]}}}52%{{stroke:{t["ink"]}}}88%{{stroke-dashoffset:0;opacity:1}}96%,100%{{stroke-dashoffset:0;opacity:0}}}}
-  .name{{font:800 64px {SANS};fill:{t["ink"]}}}
+  .name{{font:800 54px {SANS};fill:{t["ink"]}}}
   .tag{{font:600 26px {SANS};fill:{t["mute"]}}}
   .hash rect{{fill:{t["yel"]}}} .hash text{{font:600 19px {MONO};fill:#101418}}
   .hash{{clip-path:inset(0 100% 0 0);animation:type {CYC}s steps(36,end) infinite}}
@@ -163,7 +163,7 @@ def hero(t: dict) -> str:
 </style>
 <rect class="bg" width="{W}" height="{H}" rx="18"/>
 <g transform="translate(190 178)">{"".join(ridges)}</g>
-<text class="name" x="370" y="118">mlfingerprint</text>
+<text class="name" x="370" y="118">dataset-fingerprint</text>
 <text class="tag" x="372" y="160">A lockfile for your training data.</text>
 <text class="lbl" x="372" y="204">dataset fingerprint</text>
 <g class="hash"><rect x="370" y="214" width="{len(fp) * 11.6 + 28:.0f}" height="38" rx="19"/>
@@ -175,8 +175,8 @@ def hero(t: dict) -> str:
 
 # ----------------------------------------------------------------------------- CLI demo (terminal)
 CLI = [
-    ("cmd", "pip install mlfingerprint", 0.0),
-    ("out", "Successfully installed mlfingerprint-0.1.0   (zero dependencies)", 1.4),
+    ("cmd", "pip install dataset-fingerprint", 0.0),
+    ("out", "Successfully installed dataset-fingerprint-0.1.0   (zero dependencies)", 1.4),
     ("cmd", 'fingerprint commit s3://raw/drives -n drives -m "batch 05-10" --probe', 2.2),
     ("out", "drives-v1.2.0  (minor: +42 files since drives-v1.1.1)", 4.4),
     ("key", "  fingerprint : sha256:9d03ca7459476ddbe1e4b0c3…8a8096", 4.7),
@@ -215,7 +215,7 @@ def cli(t: dict) -> str:
                 f"<style>@keyframes l{i}{{0%,{start:.2f}%{{opacity:0}}{start + 1.2:.2f}%,94%{{opacity:1}}100%{{opacity:0}}}}</style>"
             )
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img"
- aria-label="Terminal demo: install mlfingerprint, commit an S3 dataset, tag it prod, verify catches a modified file.">
+ aria-label="Terminal demo: install dataset-fingerprint, commit an S3 dataset, tag it prod, verify catches a modified file.">
 <style>
   .t{{font:500 17px {MONO};white-space:pre}}
   @media (prefers-reduced-motion:reduce){{text{{animation:none!important;clip-path:none!important;opacity:1!important}}}}
@@ -407,7 +407,7 @@ def concept(t: dict) -> str:
     a_out, b_out = (CYC - 0.7) / CYC * 100, (CYC - 0.1) / CYC * 100
     css.append(f"@keyframes all{{0%{{opacity:0}}1.5%,{a_out:.2f}%{{opacity:1}}{b_out:.2f}%,100%{{opacity:0}}}}")
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img"
- aria-label="How mlfingerprint works: every file is hashed into an index, whole recordings are assigned to splits, a small manifest with one fingerprint is sealed, the model stores that fingerprint, and verify names the exact file that changed later.">
+ aria-label="How dataset-fingerprint works: every file is hashed into an index, whole recordings are assigned to splits, a small manifest with one fingerprint is sealed, the model stores that fingerprint, and verify names the exact file that changed later.">
 <style>
   .h{{font:800 18px {SANS}}} .s{{font:500 13px {SANS}}} .xs{{font:600 11px {MONO}}}
   .m{{font:500 13px {MONO}}} .b{{font:800 17px {SANS}}} .st{{font:700 14px {SANS}}}

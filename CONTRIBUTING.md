@@ -1,7 +1,7 @@
 # Contributing
 
 ```bash
-git clone https://github.com/rajanalamuri/mlfingerprint && cd mlfingerprint
+git clone https://github.com/rajanalamuri/dataset-fingerprint && cd dataset-fingerprint
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 pre-commit install

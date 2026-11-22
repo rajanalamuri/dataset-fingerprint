@@ -2,7 +2,7 @@
 later + lidar) evolving over 4 versions, an unsplit speech corpus, and multi-sensor
 drive recordings (camera frames at 10 fps + radar + 200 Hz IMU + microphone).
 
-    python examples/poc_multimodal.py /tmp/mlfingerprint-poc
+    python examples/poc_multimodal.py /tmp/dataset-fingerprint-poc
 
 Needs only the standard library; uses ffmpeg for real MP4s and Pillow for real
 PNGs when available (falls back to placeholder bytes otherwise).
@@ -21,7 +21,7 @@ import wave
 import zlib
 from pathlib import Path
 
-import mlfingerprint as fp
+import dataset_fingerprint as fp
 
 CLASSES = ["car", "pedestrian", "cyclist"]
 rng = random.Random(7)
@@ -286,11 +286,11 @@ def main(work: Path):
     print("checkout ->", c1.checkout(str(work / "checkout_v1"), split="val", mode="hardlink"))
 
     banner("16. Ledger history")
-    from mlfingerprint.cli import main as cli
+    from dataset_fingerprint.cli import main as cli
 
     cli(["log", "-L", str(ledger_root)])
     print(f"\nmanifest: {ledger_root / 'av-multimodal-v2.0.0' / 'manifest.json'}")
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/mlfingerprint-poc"))
+    main(Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/dataset-fingerprint-poc"))

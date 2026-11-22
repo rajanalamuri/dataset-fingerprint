@@ -10,11 +10,11 @@ on this repository. You will get an acknowledgement within 5 working days and a 
 
 ## Threat model
 
-mlfingerprint reads datasets and writes small metadata files (a *ledger*). It never executes data, never
+dataset-fingerprint reads datasets and writes small metadata files (a *ledger*). It never executes data, never
 uses `pickle`/`eval`, never opens a shell, and never makes network calls of its own: all I/O goes through
 the storage driver you configure (local disk or fsspec).
 
-| Actor | What they can do | What mlfingerprint guarantees |
+| Actor | What they can do | What dataset-fingerprint guarantees |
 |---|---|---|
 | Can modify **data** after a commit | change, delete, add files | `verify` detects every changed/missing file (SHA-256); the fingerprint of the version is unaffected and still identifies the original bytes |
 | Can modify **the ledger** (index/manifest) | rewrite metadata | `checkout` refuses an index that no longer matches the manifest's split checksums; paths are validated (no absolute paths, `..`, drive letters, NUL) so a malicious index can never read or write outside its root; `load_lock()` refuses a version whose fingerprint differs from the one a model stored |

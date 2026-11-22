@@ -1,4 +1,4 @@
-"""mlfingerprint command line. Set FINGERPRINT_ROOT to skip --ledger everywhere."""
+"""dataset-fingerprint command line. Set FINGERPRINT_ROOT to skip --ledger everywhere."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from typing import List, Optional
 
 from . import __version__
 from .ledger import FingerprintError, Ledger
+from .splits import DEFAULT_SEED
 
 
 def _ledger(a) -> Ledger:
@@ -197,7 +198,7 @@ def cmd_lock(a) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="fingerprint", description="Manifest-based dataset versioning for any modality.")
-    p.add_argument("--version", action="version", version=f"mlfingerprint {__version__}")
+    p.add_argument("--version", action="version", version=f"dataset-fingerprint {__version__}")
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--ledger", "-L", help="ledger root (local, s3://, az://, abfss://, gs://, dbfs:/, /Volumes/...). Default: $FINGERPRINT_ROOT")
     common.add_argument("--name", "-n", help="dataset name (default: from ledger.json or 'dataset')")
@@ -235,7 +236,7 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--extra", help="JSON object stored in the manifest")
     c.add_argument("--group-by", default="auto", help="auto (recording/sequence-safe) | file | parent | stem | regex - what stays in one split")
     c.add_argument("--modality", action="append", help="NAME=GLOB modality rule, e.g. radar='*/mmwave/**' (repeatable)")
-    c.add_argument("--seed", default="mlfingerprint")
+    c.add_argument("--seed", default=DEFAULT_SEED)
     c.add_argument("--label-from", default="auto", choices=["auto", "parent", "none"])
     c.add_argument("--label-column", help="label column inside csv/tsv/jsonl files")
     c.add_argument("--label-format", choices=["yolo"], help="count objects per class in YOLO .txt label files")
@@ -297,7 +298,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     try:
         return a.func(a)
     except FingerprintError as e:
-        print(f"mlfingerprint: error: {e}", file=sys.stderr)
+        print(f"dataset-fingerprint: error: {e}", file=sys.stderr)
         return 2
 
 

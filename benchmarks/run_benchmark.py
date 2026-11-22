@@ -1,11 +1,11 @@
-"""Benchmark mlfingerprint on MNIST and Fashion-MNIST (70,000 images each).
+"""Benchmark dataset-fingerprint on MNIST and Fashion-MNIST (70,000 images each).
 
     python benchmarks/run_benchmark.py --raw ./raw --work ./work --out benchmarks/results
 
 --raw must contain mnist/ and fashion/ with the four original *-ubyte.gz files each
 (MD5s are checked against the published values before anything runs).
 
-Every number mlfingerprint reports is cross-checked against ground truth computed
+Every number dataset-fingerprint reports is cross-checked against ground truth computed
 independently from the raw IDX pixel arrays.
 """
 
@@ -25,7 +25,7 @@ from pathlib import Path
 
 from PIL import Image, ImageOps
 
-import mlfingerprint as fp
+import dataset_fingerprint as fp
 
 MD5 = {
     "mnist": {
@@ -65,7 +65,7 @@ def read_idx(path: Path):
 
 
 def ground_truth(train_x, train_y, test_x, test_y):
-    """Exact-duplicate facts straight from the pixel arrays (no PNGs, no mlfingerprint)."""
+    """Exact-duplicate facts straight from the pixel arrays (no PNGs, no dataset-fingerprint)."""
     tr = Counter(train_x)
     te = Counter(test_x)
     train_set = set(train_x)
@@ -163,7 +163,7 @@ def run(ds: str, raw: Path, work: Path) -> dict:
 
     m = v1.manifest
     q3 = v3.manifest["quality"]
-    res["mlfingerprint"] = {
+    res["dataset-fingerprint"] = {
         "version": v1.version,
         "fingerprint": v1.fingerprint,
         "total_files": m["metadata"]["total_files"],
@@ -197,15 +197,15 @@ def run(ds: str, raw: Path, work: Path) -> dict:
     # cross-checks against ground truth
     pngs_equal_pixels = gt["distinct_pixel_arrays_shared_by_train_and_test"]
     res["checks"] = {
-        "files_match": res["mlfingerprint"]["total_files"] == gt["train_images"] + gt["test_images"],
+        "files_match": res["dataset-fingerprint"]["total_files"] == gt["train_images"] + gt["test_images"],
         "class_counts_match": all(
-            {CLASSES[ds][k]: v for k, v in gt["label_counts"][s].items()} == res["mlfingerprint"]["class_counts"][s] for s in ("train", "test")
+            {CLASSES[ds][k]: v for k, v in gt["label_counts"][s].items()} == res["dataset-fingerprint"]["class_counts"][s] for s in ("train", "test")
         ),
-        "cross_split_duplicates_match": res["mlfingerprint"]["duplicates_across_splits_v1"] == pngs_equal_pixels,
-        "duplicate_files_match": res["mlfingerprint"]["duplicate_files_v1"]
+        "cross_split_duplicates_match": res["dataset-fingerprint"]["duplicates_across_splits_v1"] == pngs_equal_pixels,
+        "duplicate_files_match": res["dataset-fingerprint"]["duplicate_files_v1"]
         == (gt["train_images"] + gt["test_images"]) - len(set(train_x) | set(test_x)),
-        "tamper_detected": res["mlfingerprint"]["tamper"]["detected"],
-        "augmentation_leak_flagged": res["mlfingerprint"]["new_batch"]["augmentation_leaks_flagged"] == 1,
+        "tamper_detected": res["dataset-fingerprint"]["tamper"]["detected"],
+        "augmentation_leak_flagged": res["dataset-fingerprint"]["new_batch"]["augmentation_leaks_flagged"] == 1,
     }
     return res
 
@@ -216,7 +216,7 @@ def main():
     ap.add_argument("--work", type=Path, required=True)
     ap.add_argument("--out", type=Path, default=Path("benchmarks/results"))
     a = ap.parse_args()
-    env = {"python": platform.python_version(), "platform": platform.platform(), "cpus": os.cpu_count(), "mlfingerprint": fp.__version__}
+    env = {"python": platform.python_version(), "platform": platform.platform(), "cpus": os.cpu_count(), "dataset-fingerprint": fp.__version__}
     results = {"environment": env, "datasets": [run(ds, a.raw, a.work) for ds in ("mnist", "fashion")]}
     a.out.mkdir(parents=True, exist_ok=True)
     (a.out / "results.json").write_text(json.dumps(results, indent=2))

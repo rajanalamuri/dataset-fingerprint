@@ -348,6 +348,6 @@
   "env": {
     "python": "3.13.18",
     "cpus": 2,
-    "mlfingerprint": "0.1.0"
+    "dataset-fingerprint": "0.1.0"
   }
 }

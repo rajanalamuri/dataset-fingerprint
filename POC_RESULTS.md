@@ -1,4 +1,4 @@
-# mlfingerprint — POC results
+# dataset-fingerprint — POC results
 
 Output of `python examples/poc_multimodal.py /tmp/fp-poc`. The data is synthetic: real MP4s via ffmpeg, real WAV/PNG files, frames extracted at 10 fps, radar `.npy` cubes, 200 Hz IMU CSVs, hourly energy-load CSVs, and NLP jsonl.
 
@@ -133,7 +133,7 @@ drives-v1.0.0  (2026-11-21T23:35:53+00:00)
   splits      : train=462 (88%)  val=22 (4%)  test=44 (8%)
   modalities  : audio=24 (24.0s)  image=240  imu=24 (23.9s) (4,800 rec)  radar=240
   ! 22 identical file(s) appear in more than one split, e.g. ['2026-05-01_run00/camera_front/000001.jpg', '2026-05-10_run09/camera_front/000001.jpg']
-split strategy: {"type": "hash", "ratios": {"train": 0.8, "val": 0.1, "test": 0.1}, "group_by": "auto:recording", "seed": "mlfingerprint", "groups": 24}
+split strategy: {"type": "hash", "ratios": {"train": 0.8, "val": 0.1, "test": 0.1}, "group_by": "auto:recording", "seed": "dataset-fingerprint", "groups": 24}
 sequences     : {"image": {"sequences": 24, "frames": 240, "min_frames": 10, "max_frames": 10}, "radar": {"sequences": 24, "frames": 240, "min_frames": 10, "max_frames": 10}}
 imu file meta : {"columns": 7, "duration_sec": 0.995, "records": 200, "sample_rate_hz": 200.0, "start": 1715013000.0, "timestamp_column": "timestamp_ns"}
 radar meta    : {"dtype": "<f4", "shape": [64, 128]}

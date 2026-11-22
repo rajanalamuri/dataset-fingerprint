@@ -87,7 +87,12 @@ def group_key(rel: str, group_by: GroupBy) -> str:
     return m.group(1) if m.groups() else m.group(0)
 
 
-def hash_split(key: str, ratios: Dict[str, float], seed: str = "mlfingerprint") -> str:
+# Seed of the stable hash split. Kept from the project's first name so every split assignment made
+# so far (and every published benchmark number) stays reproducible.
+DEFAULT_SEED = "mlfingerprint"
+
+
+def hash_split(key: str, ratios: Dict[str, float], seed: str = DEFAULT_SEED) -> str:
     """Deterministic: the same key always maps to the same split, so adding new
     files in later versions never reshuffles existing ones."""
     h = int(hashlib.sha256(f"{seed}:{key}".encode("utf-8")).hexdigest()[:15], 16) / float(16**15)

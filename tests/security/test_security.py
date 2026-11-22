@@ -16,8 +16,8 @@ from pathlib import Path
 
 import pytest
 
-import mlfingerprint as fp
-from mlfingerprint.storage import Location, UnsafePathError, safe_rel
+import dataset_fingerprint as fp
+from dataset_fingerprint.storage import Location, UnsafePathError, safe_rel
 
 pytestmark = pytest.mark.security
 SRC = Path(fp.__file__).parent
@@ -178,7 +178,7 @@ def test_storage_options_never_written_to_manifest(tmp_path, ds):
 
 
 def test_npy_probe_refuses_huge_header(tmp_path):
-    from mlfingerprint.probe import probe_file
+    from dataset_fingerprint.probe import probe_file
 
     put(tmp_path / "x" / "bad.npy", b"\x93NUMPY\x01\x00" + (65535).to_bytes(2, "little") + b"{" * 100)
     put(tmp_path / "x" / "big.npy", b"\x93NUMPY\x02\x00" + (10**8).to_bytes(4, "little"))

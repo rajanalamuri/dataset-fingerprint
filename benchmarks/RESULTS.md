@@ -2,15 +2,15 @@
 
 ## MNIST and Fashion-MNIST
 
-mlfingerprint 0.1.0 on two well-known 70,000-image datasets, each exported to the standard
+dataset-fingerprint 0.1.0 on two well-known 70,000-image datasets, each exported to the standard
 ImageFolder layout (`train/<class>/*.png`, `test/<class>/*.png`). The raw files were checked against
-their published MD5 checksums, and every count mlfingerprint reports was cross-checked against ground
-truth computed **independently from the raw IDX pixel arrays** (no PNGs, no mlfingerprint involved).
+their published MD5 checksums, and every count dataset-fingerprint reports was cross-checked against ground
+truth computed **independently from the raw IDX pixel arrays** (no PNGs, no dataset-fingerprint involved).
 
 Machine: 2 vCPUs, Linux-6.18.44-fc-v726-x86_64-with-glibc2.39, Python 3.13.18. Local disk, `reference` mode unless noted.
 Reproduce: `bash benchmarks/download.sh raw && python benchmarks/run_benchmark.py --raw raw --work work && python benchmarks/report.py`
 
-## Correctness: mlfingerprint vs ground truth
+## Correctness: dataset-fingerprint vs ground truth
 
 | Check | MNIST | Fashion-MNIST |
 |---|---:|---:|
@@ -34,7 +34,7 @@ Reproduce: `bash benchmarks/download.sh raw && python benchmarks/run_benchmark.p
 | Dataset fingerprint | `sha256:cd7ff2f1f6ae0cf5…` | `sha256:e77fe4b56f0b249f…` |
 
 Both datasets are clean at the **exact**-duplicate level: no image appears twice and no test image is a byte-for-byte
-copy of a training image, and mlfingerprint reports exactly that. Exact hashing cannot see **near**-duplicates
+copy of a training image, and dataset-fingerprint reports exactly that. Exact hashing cannot see **near**-duplicates
 (re-encoded, resized or slightly shifted copies). Those are known to exist in other benchmarks, e.g. CIFAR-10/100,
 and are caught by the opt-in perceptual check (`near_duplicates=True`); see the CIFAR-10 section below.
 
@@ -98,7 +98,7 @@ Reproduce: `bash benchmarks/download_coco.sh .bench/coco && python benchmarks/ru
 
 ## Part A: 122,224 annotation files
 
-| Check (ground truth computed without mlfingerprint) | |
+| Check (ground truth computed without dataset-fingerprint) | |
 |---|:-:|
 | label files per split match | ✅ |
 | object counts match train | ✅ |
@@ -151,11 +151,11 @@ pixels.
 | one flipped byte in a jpeg detected | ✅ |
 
 128 JPEGs in 58 different resolutions (most common: 640x480 ×35, 640x427 ×12, 480x640 ×9),
-all read correctly by the probe. With no splits given, mlfingerprint hash-split the folder train 193, val 38, test 27 files and kept
+all read correctly by the probe. With no splits given, dataset-fingerprint hash-split the folder train 193, val 38, test 27 files and kept
 every image in the same split as its label file. Flipping one byte inside one JPEG was caught by `verify`.
 
 **Found and fixed by this run:** COCO names images by sparse numeric ids (`000000000009.jpg`, `000000000025.jpg`,
-…). The first version of mlfingerprint mistook that numbering for video frames and grouped unrelated photos into
+…). The first version of dataset-fingerprint mistook that numbering for video frames and grouped unrelated photos into
 blocks, which skewed the split (201 / 17 / 40). Frame sequences now have to be densely or regularly numbered (frame
 counters, fixed-rate timestamps). Irregular ids are treated as independent samples, and a regression test covers it.
 
@@ -166,7 +166,7 @@ independent ground-truth checks cover the annotations only.
 # CIFAR-10: near-duplicates across splits (reproducing ciFAIR)
 
 Barz & Denzler (ciFAIR) found **286** CIFAR-10 test images with a near-duplicate in the training set,
-using CNN features plus manual review. mlfingerprint has no CNN: `commit(..., near_duplicates=T)` computes a 64-bit
+using CNN features plus manual review. dataset-fingerprint has no CNN: `commit(..., near_duplicates=T)` computes a 64-bit
 difference hash (dHash) per image and runs an exact Hamming search across splits. Exact byte-level duplicates across
 splits: **0**.
 

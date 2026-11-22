@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-message: "If you use mlfingerprint, please cite it as below."
-title: "mlfingerprint: a lockfile for training data"
+message: "If you use dataset-fingerprint, please cite it as below."
+title: "dataset-fingerprint: a lockfile for training data"
 abstract: >-
   Manifest-based dataset versioning with leakage-aware splits, lineage and
   integrity verification for any modality (vision, audio, sensors, text,
@@ -10,7 +10,7 @@ authors:
   - family-names: Alamuri
     given-names: Raj
 license: MIT
-repository-code: "https://github.com/rajanalamuri/mlfingerprint"
+repository-code: "https://github.com/rajanalamuri/dataset-fingerprint"
 keywords:
   - mlops
   - dataset versioning

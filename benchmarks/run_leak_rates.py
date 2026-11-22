@@ -22,7 +22,7 @@ import tempfile
 import time
 from pathlib import Path
 
-import mlfingerprint as fp
+import dataset_fingerprint as fp
 
 
 def run(name: str, src: str, **kw) -> dict:
@@ -93,7 +93,7 @@ def main() -> None:
         res.append(run("coco128 (hash split 80/10/10)", a.coco128, split="0.8,0.1,0.1", label_format="yolo", near_duplicates=4))
     Path(a.out).write_text(
         json.dumps(
-            {"results": res, "env": {"python": platform.python_version(), "cpus": os.cpu_count(), "mlfingerprint": fp.__version__}},
+            {"results": res, "env": {"python": platform.python_version(), "cpus": os.cpu_count(), "dataset-fingerprint": fp.__version__}},
             indent=2,
         )
     )

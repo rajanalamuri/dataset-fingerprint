@@ -1,6 +1,6 @@
-"""mlfingerprint - lightweight, manifest-based dataset versioning for any modality.
+"""dataset-fingerprint - lightweight, manifest-based dataset versioning for any modality.
 
-import mlfingerprint as fp
+import dataset_fingerprint as fp
 
 v = fp.commit("./my_data", "s3://ml/ledgers/cars", message="added 3 batches")
 ds = fp.load("s3://ml/ledgers/cars", "latest")

@@ -24,7 +24,7 @@ jobs:
       - name: pip-audit (known CVEs in every optional dependency)
         run: |
           python -m venv /tmp/a && /tmp/a/bin/pip install -q ".[all]" pip-audit
-          /tmp/a/bin/pip freeze | grep -vi '^mlfingerprint' > /tmp/req.txt   # audit every dependency, not our unpublished self
+          /tmp/a/bin/pip freeze | grep -vi '^dataset-fingerprint' > /tmp/req.txt   # audit every dependency, not our unpublished self
           /tmp/a/bin/pip-audit -r /tmp/req.txt --strict --no-deps --disable-pip
 
   secrets:

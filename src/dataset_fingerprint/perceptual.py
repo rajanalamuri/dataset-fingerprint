@@ -8,7 +8,7 @@ Search is exact for the chosen threshold: split each hash into T+1 disjoint chun
 two hashes within Hamming distance T must agree on at least one chunk (pigeonhole),
 so only items sharing a chunk value are compared.
 
-Requires Pillow (`pip install mlfingerprint[image]`); without it the check is skipped.
+Requires Pillow (`pip install dataset-fingerprint[image]`); without it the check is skipped.
 """
 
 from __future__ import annotations

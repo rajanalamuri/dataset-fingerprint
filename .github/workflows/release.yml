@@ -27,7 +27,7 @@ jobs:
       - name: Tag must match the package version
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          V=$(python -c "import re;print(re.search(r'__version__ = \"(.+?)\"', open('src/mlfingerprint/__init__.py').read()).group(1))")
+          V=$(python -c "import re;print(re.search(r'__version__ = \"(.+?)\"', open('src/dataset_fingerprint/__init__.py').read()).group(1))")
           test "v$V" = "${GITHUB_REF_NAME}" || { echo "tag ${GITHUB_REF_NAME} != v$V"; exit 1; }
           grep -q "## $V" CHANGELOG.md || { echo "CHANGELOG.md has no entry for $V"; exit 1; }
       - run: pip install build twine && python -m build && twine check --strict dist/*
@@ -39,7 +39,7 @@ jobs:
   testpypi:
     needs: build
     runs-on: ubuntu-latest
-    environment: {name: testpypi, url: "https://test.pypi.org/p/mlfingerprint"}
+    environment: {name: testpypi, url: "https://test.pypi.org/p/dataset-fingerprint"}
     permissions: {id-token: write}
     steps:
       - uses: actions/download-artifact@v4
@@ -51,7 +51,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: testpypi
     runs-on: ubuntu-latest
-    environment: {name: pypi, url: "https://pypi.org/p/mlfingerprint"}   # add yourself as required reviewer
+    environment: {name: pypi, url: "https://pypi.org/p/dataset-fingerprint"}   # add yourself as required reviewer
     permissions: {id-token: write}
     steps:
       - uses: actions/download-artifact@v4

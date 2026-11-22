@@ -35,7 +35,7 @@ cloud = ["mlfingerprint[s3,gcs,azure,databricks,hf]"]
 image = ["Pillow>=9"]
 all = ["mlfingerprint[cloud,image]"]
 test = ["pytest>=7", "pytest-cov>=4"]
-integration = ["mlfingerprint[s3,azure,gcs,test]", "moto[server]>=5", "boto3"]
+integration = ["mlfingerprint[azure,gcs,test]", "s3fs>=2023.1", "moto[server]>=5"]
 security = ["bandit[toml]>=1.7", "pip-audit>=2.7"]
 dev = ["mlfingerprint[test,integration,security]", "build", "twine", "ruff", "mypy", "pre-commit"]
 

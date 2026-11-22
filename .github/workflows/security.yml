@@ -23,7 +23,7 @@ jobs:
         run: pytest -m security -v
       - name: pip-audit (known CVEs in every optional dependency)
         run: |
-          python -m venv /tmp/a && /tmp/a/bin/pip install -q ".[all]" pip-audit
+          python -m venv /tmp/a && /tmp/a/bin/pip install -q -e ".[all]" pip-audit
           /tmp/a/bin/pip-audit --skip-editable --strict
 
   secrets:
@@ -35,8 +35,10 @@ jobs:
         env: {GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
 
   codeql:
+    # code scanning needs a public repo (or GitHub Code Security on private ones)
+    if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
-    permissions: {security-events: write, contents: read}
+    permissions: {security-events: write, contents: read, actions: read}
     steps:
       - uses: actions/checkout@v4
       - uses: github/codeql-action/init@v3
@@ -44,7 +46,7 @@ jobs:
       - uses: github/codeql-action/analyze@v3
 
   dependency-review:
-    if: github.event_name == 'pull_request'
+    if: ${{ github.event_name == 'pull_request' && !github.event.repository.private }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

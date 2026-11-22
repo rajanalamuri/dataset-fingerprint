@@ -37,6 +37,11 @@ No server, no database, no account. A version is a folder of small files next to
 
 ## The idea
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/concept-dark.svg">
+  <img src="docs/assets/concept-light.svg" alt="How it works: every file is hashed into an index, whole recordings are assigned to one split, a small manifest with a single fingerprint is sealed, the model stores that fingerprint, and verify names the exact file that changed later." width="100%">
+</picture>
+
 **Version the description, not the data.** Blobs stay where they are. Each version is an immutable folder:
 
 ```

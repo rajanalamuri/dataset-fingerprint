@@ -2,7 +2,7 @@
 
 ## 0.1.0
 
-_Unreleased._
+_2026-11-22 · first public release._
 **Core**
 - Immutable versions: manifest + per-file index (sha256) + split lists; manifest written last; commit-race protection.
 - Storage via fsspec: local, S3 (+MinIO/R2), Azure Blob/ADLS, GCS, Databricks (dbfs:/, /dbfs, /Volumes), HF, HDFS…; parallel bucket listing; ETag/mtime hash cache.
@@ -22,6 +22,11 @@ _Unreleased._
 - Parents (other versions or external refs like Delta tables), `trace()`, `check_lineage()` (stale/altered), `load_lock()`.
 - `record_training()` across multiple datasets with recipe + seed; PyTorch, MLflow and feature-store helpers.
 - CLI: commit, log, show, diff, verify (--sample, --quick), files, lock, tag, tags, lineage, checkout.
+
+**Leak rate & near-duplicates**
+- Every commit reports a leak rate (val/test files that are byte copies or augmentations of train files, or overlap train in time), effective test size, and a record-level rate for text/tables; `max_leak_rate` / `--max-leak-rate` fails the commit above a threshold.
+- Optional perceptual near-duplicate check (`near_duplicates=True`, `--near-dups`): 64-bit dHash with exact Hamming search across splits, cached by content; reported as a separate *suspected* rate and flagged as uninformative when it matches most of a split.
+- Recording/sequence names shared by train and val/test are reported as a warning.
 
 **Detection datasets**
 - `label_format="yolo"` (+ `class_names`, CLI `--label-format yolo --class-names`) counts objects per class in YOLO label files; box coordinates are never treated as text records.

@@ -20,5 +20,5 @@ pre-commit install
 Rules of thumb: the core keeps **zero runtime dependencies**; anything optional is lazy-imported behind an extra.
 Every bug fix gets a test; every security fix gets a test in `tests/security`.
 
-README animations live in `docs/assets/*.svg` (pure SVG + CSS, light and dark). Regenerate them with
+README animations (hero, concept explainer, CLI demo) live in `docs/assets/*.svg` (pure SVG + CSS, light and dark). Regenerate them with
 `python scripts/make_readme_assets.py`.

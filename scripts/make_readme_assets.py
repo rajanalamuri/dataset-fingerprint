@@ -230,10 +230,203 @@ def cli(t: dict) -> str:
 """
 
 
+# ----------------------------------------------------------------------------- concept explainer
+def concept(t: dict) -> str:
+    """How it works, in five beats: hash -> split -> seal -> lock -> verify. Loops every CYC seconds."""
+    W, H, CYC = 1000, 500, 17.0
+    css: list[str] = []
+    n_anim = [0]
+
+    def show(at: float, extra_from: str = "", extra_to: str = "", dur: float = 0.45) -> str:
+        """Hidden until `at` seconds, then fades (and optionally moves) in and stays until the loop fades out."""
+        n_anim[0] += 1
+        name = f"a{n_anim[0]}"
+        a, b = at / CYC * 100, (at + dur) / CYC * 100
+        css.append(f"@keyframes {name}{{0%,{a:.2f}%{{opacity:0;{extra_from}}}{b:.2f}%,100%{{opacity:1;{extra_to}}}}}")
+        return f'style="opacity:0;animation:{name} {CYC}s infinite"'
+
+    def fly(at: float, dx: float, dy: float, dur: float = 0.55) -> str:
+        """A chip that appears at its origin and travels by (dx, dy), then disappears."""
+        n_anim[0] += 1
+        name = f"a{n_anim[0]}"
+        a, m, b, e = (at / CYC * 100, (at + 0.08) / CYC * 100, (at + dur) / CYC * 100, (at + dur + 0.1) / CYC * 100)
+        css.append(
+            f"@keyframes {name}{{0%,{a:.2f}%{{opacity:0;transform:translate(0,0)}}{m:.2f}%{{opacity:1;transform:translate(0,0)}}"
+            f"{b:.2f}%{{opacity:1;transform:translate({dx:.0f}px,{dy:.0f}px)}}{e:.2f}%,100%{{opacity:0;transform:translate({dx:.0f}px,{dy:.0f}px)}}}}"
+        )
+        return f'style="opacity:0;animation:{name} {CYC}s infinite"'
+
+    def sweep(at: float, x0: float, x1: float, dur: float) -> str:
+        n_anim[0] += 1
+        name = f"a{n_anim[0]}"
+        a, b, e = at / CYC * 100, (at + dur) / CYC * 100, (at + dur + 0.15) / CYC * 100
+        css.append(
+            f"@keyframes {name}{{0%,{a:.2f}%{{opacity:0;transform:translate({x0:.0f}px,0)}}{a + 0.3:.2f}%{{opacity:1;transform:translate({x0:.0f}px,0)}}"
+            f"{b:.2f}%{{opacity:1;transform:translate({x1:.0f}px,0)}}{e:.2f}%,100%{{opacity:0;transform:translate({x1:.0f}px,0)}}}}"
+        )
+        return f'style="opacity:0;animation:{name} {CYC}s infinite"'
+
+    def step(at: float, until: float) -> str:
+        n_anim[0] += 1
+        name = f"a{n_anim[0]}"
+        a, b, c, d = at / CYC * 100, (at + 0.3) / CYC * 100, until / CYC * 100, (until + 0.3) / CYC * 100
+        css.append(f"@keyframes {name}{{0%,{a:.2f}%{{opacity:.32}}{b:.2f}%,{c:.2f}%{{opacity:1}}{d:.2f}%,100%{{opacity:.32}}}}")
+        return f'style="opacity:.32;animation:{name} {CYC}s infinite"'
+
+    ink, mute, line, soft, yel, red = t["ink"], t["mute"], t["line"], t["soft"], t["yel"], t["red"]
+    split_col = {"train": ink, "val": "#8b97aa", "test": yel}
+    runs = [("run_01", "train"), ("run_02", "val"), ("run_03", "test")]
+    kinds = [("cam", ".jpg"), ("radar", ".npy"), ("imu", ".csv")]
+    out: list[str] = []
+
+    # panel frames
+    def panel(x, y, w, h, title, sub):
+        return (
+            f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="14" fill="{t["bg"]}" stroke="{line}"/>'
+            f'<text x="{x + 16}" y="{y + 28}" class="h">{title}</text><text x="{x + 16}" y="{y + 48}" class="s">{sub}</text>'
+        )
+
+    out.append(panel(20, 20, 290, 370, "Your data", "stays where it is: S3 · Azure · GCS · disk"))
+    out.append(panel(340, 20, 300, 370, "index.jsonl.gz", "one row per file: path · sha256 · split"))
+    out.append(panel(670, 20, 310, 205, "manifest.json", "a few KB · written once"))
+    out.append(panel(670, 245, 310, 145, "Your model", "stores the lock it trained on"))
+
+    # storage tiles
+    tiles = {}
+    for r, (run, sp) in enumerate(runs):
+        y = 104 + r * 92
+        out.append(f'<text x="36" y="{y - 12}" class="s">{run}</text>')
+        for k, (kind, ext) in enumerate(kinds):
+            x = 36 + k * 88
+            tiles[(r, k)] = (x, y)
+            out.append(f'<rect x="{x}" y="{y}" width="76" height="58" rx="9" fill="{soft}" stroke="{line}"/>')
+            cx, cy = x + 38, y + 24
+            if kind == "cam":
+                out.append(
+                    f'<rect x="{cx - 15}" y="{cy - 11}" width="30" height="22" rx="4" fill="none" stroke="{ink}" stroke-width="2"/>'
+                    f'<circle cx="{cx}" cy="{cy}" r="5.5" fill="none" stroke="{ink}" stroke-width="2"/>'
+                )
+            elif kind == "radar":
+                out.append(
+                    "".join(
+                        f'<rect x="{cx - 14 + i * 10}" y="{cy - 12 + j * 9}" width="8" height="7" rx="1.5" fill="{yel if (i + j) % 3 == 0 else line}"/>'
+                        for i in range(3)
+                        for j in range(3)
+                    )
+                )
+            else:
+                out.append(f'<path d="M{cx - 16},{cy} q4,-10 8,0 t8,0 t8,0 t8,0" fill="none" stroke="{ink}" stroke-width="2"/>')
+            out.append(f'<text x="{cx}" y="{y + 50}" class="xs" text-anchor="middle">{kind}{ext}</text>')
+
+    # beat 1: scan + hash chips fly into index rows
+    out.append(f'<rect x="0" y="62" width="4" height="318" rx="2" fill="{yel}" {sweep(0.4, 30, 300, 2.9)}/>')
+    order = [(r, k) for r in range(3) for k in range(3)]
+    for i, (r, k) in enumerate(order):
+        x, y = tiles[(r, k)]
+        ry = 86 + i * 31
+        at = 0.6 + i * 0.3
+        h = hexstr(100 + i, 6)
+        out.append(
+            f'<g {fly(at, 362 - x, ry - 10 - y)}><rect x="{x}" y="{y + 10}" width="76" height="20" rx="10" fill="{yel}"/>'
+            f'<text x="{x + 38}" y="{y + 24}" class="xs" text-anchor="middle" fill="#101418">{h}…</text></g>'
+        )
+        run, sp = runs[r]
+        kind, ext = kinds[k]
+        out.append(
+            f'<g {show(at + 0.55)}><text x="358" y="{ry + 4}" class="m">{run}/{kind}{ext}</text>'
+            f'<text x="512" y="{ry + 4}" class="m" fill="{mute}">{h}…</text></g>'
+        )
+        # beat 2: split chip per row
+        c = split_col[sp]
+        out.append(
+            f'<g {show(4.4 + r * 0.25)}><rect x="572" y="{ry - 9}" width="54" height="18" rx="9" fill="{c}"/>'
+            f'<text x="599" y="{ry + 4}" class="xs" text-anchor="middle" fill="{"#101418" if sp == "test" else t["bg"] if sp == "train" else "#ffffff"}">{sp}</text></g>'
+        )
+
+    # beat 2: whole recordings outlined in their split colour
+    for r, (run, sp) in enumerate(runs):
+        y = 104 + r * 92
+        out.append(
+            f'<rect x="28" y="{y - 30}" width="274" height="94" rx="12" fill="none" stroke="{split_col[sp]}" stroke-width="3" {show(4.4 + r * 0.25)}/>'
+        )
+    out.append(f'<text x="165" y="378" class="s" text-anchor="middle" {show(5.2)}>a recording never straddles splits</text>')
+
+    # beat 3: rows converge into the manifest, fingerprint appears, sealed
+    for i in range(0, 9, 2):
+        ry = 86 + i * 31
+        out.append(f'<path d="M632,{ry} C660,{ry} 650,150 690,150" fill="none" stroke="{line}" stroke-width="1.6" {show(6.6 + i * 0.05)}/>')
+    mlines = [("version", "drives-v1.2.0", 6.9), ("splits", "train 80 · val 10 · test 10", 7.2), ("lineage", "from v1.1.1, +42 files", 7.5)]
+    for j, (k, v, at) in enumerate(mlines):
+        out.append(
+            f'<g {show(at)}><text x="690" y="{92 + j * 24}" class="m" fill="{mute}">{k}</text><text x="756" y="{92 + j * 24}" class="m">{v}</text></g>'
+        )
+    out.append(
+        f'<g {show(7.9, "transform:translateY(6px)", "transform:none")}><rect x="686" y="160" width="278" height="30" rx="15" fill="{yel}"/>'
+        f'<text x="825" y="180" class="m" text-anchor="middle" fill="#101418">fingerprint sha256:9d03ca74…</text></g>'
+    )
+    out.append(
+        f'<g class="seal" {show(8.4, "transform:scale(1.25)", "transform:none")}>'
+        f'<circle cx="930" cy="62" r="24" fill="none" stroke="{ink}" stroke-width="2.5"/>'
+        f'<text x="930" y="66" class="xs" text-anchor="middle" font-weight="800">SEALED</text></g>'
+    )
+
+    # beat 4: model stores the lock
+    out.append(f'<path d="M825,192 L825,246" fill="none" stroke="{ink}" stroke-width="2" stroke-dasharray="5 5" {show(9.1)}/>')
+    out.append(
+        f'<g {show(9.4)}><text x="690" y="324" class="b">model-v4 · mAP 0.61</text>'
+        f'<text x="690" y="350" class="m" fill="{mute}">trained on drives-v1.2.0</text>'
+        f'<text x="690" y="374" class="m">sha256:9d03ca74…  ✓ reproducible</text></g>'
+    )
+
+    # beat 5: someone edits a file -> verify re-hashes -> exact file named
+    ex, ey = tiles[(1, 1)]
+    out.append(f'<rect x="{ex}" y="{ey}" width="76" height="58" rx="9" fill="none" stroke="{red}" stroke-width="3.5" {show(11.0)}/>')
+    out.append(f'<text x="{ex + 38}" y="{ey - 8}" class="xs" text-anchor="middle" fill="{red}" font-weight="700" {show(11.0)}>edited later</text>')
+    out.append(f'<rect x="0" y="66" width="4" height="300" rx="2" fill="{red}" {sweep(11.6, 348, 636, 1.4)}/>')
+    vy = 86 + 4 * 31
+    out.append(f'<rect x="348" y="{vy - 13}" width="284" height="24" rx="6" fill="none" stroke="{red}" stroke-width="2.5" {show(12.4)}/>')
+    out.append(
+        f'<g {show(13.0, "transform:translateY(6px)", "transform:none")}><rect x="250" y="402" width="500" height="34" rx="17" fill="{red}"/>'
+        f'<text x="500" y="424" class="m" text-anchor="middle" fill="#ffffff">verify: FAILED · run_02/radar.npy changed → exit 1</text></g>'
+    )
+
+    # step bar
+    steps = [
+        ("Hash every file", 0.3, 4.2),
+        ("Split whole recordings", 4.3, 6.4),
+        ("Seal a manifest", 6.5, 8.9),
+        ("Model keeps the lock", 9.0, 10.8),
+        ("Verify catches drift", 10.9, 16.2),
+    ]
+    sx = 20
+    for label, a, b in steps:
+        w = 22 + len(label) * 8.6
+        out.append(f'<g {step(a, b)}><circle cx="{sx + 8}" cy="470" r="5" fill="{yel}"/><text x="{sx + 20}" y="475" class="st">{label}</text></g>')
+        sx += w + 20
+
+    a_out, b_out = (CYC - 0.7) / CYC * 100, (CYC - 0.1) / CYC * 100
+    css.append(f"@keyframes all{{0%{{opacity:0}}1.5%,{a_out:.2f}%{{opacity:1}}{b_out:.2f}%,100%{{opacity:0}}}}")
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img"
+ aria-label="How mlfingerprint works: every file is hashed into an index, whole recordings are assigned to splits, a small manifest with one fingerprint is sealed, the model stores that fingerprint, and verify names the exact file that changed later.">
+<style>
+  .h{{font:800 18px {SANS}}} .s{{font:500 13px {SANS}}} .xs{{font:600 11px {MONO}}}
+  .m{{font:500 13px {MONO}}} .b{{font:800 17px {SANS}}} .st{{font:700 14px {SANS}}}
+  .h:not([fill]),.m:not([fill]),.b:not([fill]),.st:not([fill]){{fill:{ink}}} .s:not([fill]),.xs:not([fill]){{fill:{mute}}}
+  .all{{animation:all {CYC}s infinite}} .seal{{transform-origin:930px 62px}}
+  {"".join(css)}
+  @media (prefers-reduced-motion:reduce){{*{{animation:none!important;opacity:1!important}}}}
+</style>
+<rect width="{W}" height="{H}" rx="18" fill="{t["bg"]}"/>
+<g class="all">{"".join(out)}</g>
+</svg>
+"""
+
+
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     for name, t in THEMES.items():
         (OUT / f"hero-{name}.svg").write_text(hero(t))
         (OUT / f"cli-{name}.svg").write_text(cli(t))
+        (OUT / f"concept-{name}.svg").write_text(concept(t))
     for p in sorted(OUT.glob("*.svg")):
         print(f"{p.relative_to(OUT.parent.parent)}  {p.stat().st_size / 1024:.1f} KB")

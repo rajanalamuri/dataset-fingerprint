@@ -125,7 +125,7 @@ def test_cross_cloud_s3_source_azure_ledger(s3, azure):
 def test_cli_end_to_end_on_s3(s3, s3_server, tmp_path):
     seed_drives(s3, runs=6, frames=1)
     env = dict(os.environ, AWS_ENDPOINT_URL=s3_server, FINGERPRINT_ROOT=s3.uri("ledgers", "cli"))
-    run = lambda *a: subprocess.run([sys.executable, "-m", "dataset-fingerprint", *a], env=env, capture_output=True, text=True)  # noqa: E731
+    run = lambda *a: subprocess.run([sys.executable, "-m", "dataset_fingerprint", *a], env=env, capture_output=True, text=True)  # noqa: E731
     r = run("commit", s3.uri("drives"), "-n", "drives", "-m", "ci", "--probe", "-q", "--json")
     assert r.returncode == 0, r.stderr
     assert json.loads(r.stdout)["version"] == "drives-v1.0.0"

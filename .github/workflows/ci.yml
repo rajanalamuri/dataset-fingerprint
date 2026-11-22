@@ -51,6 +51,7 @@ jobs:
     timeout-minutes: 25
     env:
       STORAGE_EMULATOR_HOST: http://127.0.0.1:4443
+      GCSFS_EXPERIMENTAL_ZB_HNS_SUPPORT: "false"   # emulators have no gRPC endpoint
       PYTHONUNBUFFERED: "1"
     steps:
       - uses: actions/checkout@v4

@@ -23,6 +23,7 @@ AZURITE_CONN = os.environ.get("FP_AZURITE_CONN") or (
     "BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;"
 )
 GCS_HOST = os.environ.get("STORAGE_EMULATOR_HOST", "http://127.0.0.1:4443")
+os.environ.setdefault("GCSFS_EXPERIMENTAL_ZB_HNS_SUPPORT", "false")  # emulators have no gRPC endpoint
 for h in ("127.0.0.1", "localhost"):
     for k in ("NO_PROXY", "no_proxy"):
         if h not in os.environ.get(k, ""):

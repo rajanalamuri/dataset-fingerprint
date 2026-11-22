@@ -8,6 +8,8 @@
 <p align="center">
   <a href="https://github.com/rajanalamuri/dataset-fingerprint/actions/workflows/ci.yml"><img src="https://github.com/rajanalamuri/dataset-fingerprint/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
   <a href="https://github.com/rajanalamuri/dataset-fingerprint/actions/workflows/security.yml"><img src="https://github.com/rajanalamuri/dataset-fingerprint/actions/workflows/security.yml/badge.svg" alt="security"></a>
+  <a href="https://pypi.org/project/dataset-fingerprint/"><img src="https://img.shields.io/pypi/v/dataset-fingerprint?color=101418" alt="PyPI"></a>
+  <a href="https://doi.org/10.5281/zenodo.24447086"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.24447086.svg" alt="DOI"></a>
   <img src="https://img.shields.io/badge/python-3.9%E2%80%933.13-101418" alt="python 3.9-3.13">
   <img src="https://img.shields.io/badge/dependencies-zero-ffd84a" alt="zero dependencies">
   <img src="https://img.shields.io/badge/license-Apache%202.0-101418" alt="Apache 2.0">
@@ -252,13 +254,14 @@ Unit, integration (S3, Azure, GCS emulators) and security test suites run in CI 
 ## Citing
 
 If dataset-fingerprint helps your work, please cite it. GitHub's **"Cite this repository"** button uses [`CITATION.cff`](CITATION.cff),
-and every tagged release is archived with a DOI on Zenodo.
+and every release is archived on Zenodo. Cite [10.5281/zenodo.24447086](https://doi.org/10.5281/zenodo.24447086) for the project, which always resolves to the latest version.
 
 ```bibtex
 @software{alamuri_dataset-fingerprint,
   author  = {Alamuri, Raj},
   title   = {dataset-fingerprint: a lockfile for training data},
   url     = {https://github.com/rajanalamuri/dataset-fingerprint},
+  doi     = {10.5281/zenodo.24447086},
   version = {0.1.0},
   year    = {2026}
 }

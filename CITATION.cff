@@ -10,6 +10,7 @@ authors:
   - family-names: Alamuri
     given-names: Raj
 license: Apache-2.0
+doi: 10.5281/zenodo.24447086
 repository-code: "https://github.com/rajanalamuri/dataset-fingerprint"
 keywords:
   - mlops

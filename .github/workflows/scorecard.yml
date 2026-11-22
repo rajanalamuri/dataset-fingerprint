@@ -7,6 +7,7 @@ on:
 permissions: read-all
 jobs:
   analysis:
+    if: ${{ !github.event.repository.private }}   # Scorecard publishes results only for public repos
     runs-on: ubuntu-latest
     permissions: {security-events: write, id-token: write}
     steps:

@@ -254,7 +254,25 @@ class Location:
                         continue
                 st = os.stat(full)
                 # ctime + inode catch content changes even when a tool restores mtime (rsync -t, cp -p, tar)
-                yield FileEntry(rel, st.st_size, st.st_mtime, f"{st.st_mtime_ns}:{st.st_ctime_ns}:{st.st_ino}")
+                stamp = f"{st.st_mtime_ns}:{st.st_ctime_ns}:{st.st_ino}"
+                if os.name == "nt":  # Windows has no change-time/inode: add a head+tail content sample
+                    stamp += ":" + _sample_digest(full, st.st_size)
+                yield FileEntry(rel, st.st_size, st.st_mtime, stamp)
+
+
+def _sample_digest(path: str, size: int, chunk: int = 64 << 10) -> str:
+    """First + last 64 KB (whole file when small): catches restored-mtime edits on Windows cheaply."""
+    import hashlib
+
+    h = hashlib.blake2b(digest_size=12)
+    with open(path, "rb") as f:
+        h.update(f.read(chunk))
+        if size > 2 * chunk:
+            f.seek(-chunk, os.SEEK_END)
+            h.update(f.read(chunk))
+        elif size > chunk:
+            h.update(f.read())
+    return h.hexdigest()
 
 
 def _as_float(v) -> Optional[float]:  # noqa: E302

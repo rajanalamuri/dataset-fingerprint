@@ -1,0 +1,7 @@
+# Gitleaks config: default rules + an allowlist for known-public test fixtures.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Azurite's public, documented emulator account key (not a secret)"
+regexes = ["""Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="""]

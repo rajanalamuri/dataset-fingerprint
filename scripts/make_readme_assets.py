@@ -293,7 +293,7 @@ def concept(t: dict) -> str:
 
     # storage tiles
     tiles = {}
-    for r, (run, sp) in enumerate(runs):
+    for r, (run, _sp) in enumerate(runs):
         y = 104 + r * 92
         out.append(f'<text x="36" y="{y - 12}" class="s">{run}</text>')
         for k, (kind, ext) in enumerate(kinds):
@@ -344,7 +344,7 @@ def concept(t: dict) -> str:
         )
 
     # beat 2: whole recordings outlined in their split colour
-    for r, (run, sp) in enumerate(runs):
+    for r, (_run, sp) in enumerate(runs):
         y = 104 + r * 92
         out.append(
             f'<rect x="28" y="{y - 30}" width="274" height="94" rx="12" fill="none" stroke="{split_col[sp]}" stroke-width="3" {show(4.4 + r * 0.25)}/>'

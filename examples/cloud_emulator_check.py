@@ -1,6 +1,6 @@
 """Smoke test against local cloud emulators (no real cloud account needed).
 
-pip install "mlfingerprint[s3,azure]" "moto[server]" boto3 azure-storage-blob
+pip install "dataset-fingerprint[s3,azure]" "moto[server]" boto3 azure-storage-blob
 moto_server -p 5555 &                      # S3
 npx azurite-blob --blobPort 10000 &        # Azure Blob
 NO_PROXY=127.0.0.1 python examples/cloud_emulator_check.py
@@ -16,7 +16,7 @@ os.environ.setdefault("AWS_ENDPOINT_URL", "http://127.0.0.1:5555")
 import boto3  # noqa: E402
 from azure.storage.blob import BlobServiceClient  # noqa: E402
 
-import mlfingerprint as fp  # noqa: E402
+import dataset_fingerprint as fp  # noqa: E402
 
 AZURITE = (
     "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6"

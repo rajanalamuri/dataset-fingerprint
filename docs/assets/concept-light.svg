@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500" width="1000" height="500" role="img"
- aria-label="How mlfingerprint works: every file is hashed into an index, whole recordings are assigned to splits, a small manifest with one fingerprint is sealed, the model stores that fingerprint, and verify names the exact file that changed later.">
+ aria-label="How dataset-fingerprint works: every file is hashed into an index, whole recordings are assigned to splits, a small manifest with one fingerprint is sealed, the model stores that fingerprint, and verify names the exact file that changed later.">
 <style>
   .h{font:800 18px Manrope, 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif} .s{font:500 13px Manrope, 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif} .xs{font:600 11px 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
   .m{font:500 13px 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace} .b{font:800 17px Manrope, 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif} .st{font:700 14px Manrope, 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif}

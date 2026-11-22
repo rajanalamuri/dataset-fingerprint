@@ -3,7 +3,7 @@ import random
 
 import pytest
 
-from mlfingerprint import FingerprintError, Ledger, perceptual
+from dataset_fingerprint import FingerprintError, Ledger, perceptual
 
 PIL = pytest.importorskip("PIL")
 from PIL import Image, ImageEnhance  # noqa: E402

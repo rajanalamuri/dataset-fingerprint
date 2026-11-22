@@ -108,7 +108,7 @@ class Location:
 
                 self.fs, path = fsspec.core.url_to_fs(uri, **_remote_options(self.protocol, self.storage_options))
             except ImportError as e:  # pragma: no cover - depends on env
-                raise ImportError(f"'{uri}' needs an extra driver: pip install 'mlfingerprint[{extra}]'  ({e})") from e
+                raise ImportError(f"'{uri}' needs an extra driver: pip install 'dataset-fingerprint[{extra}]'  ({e})") from e
             self.root = path.rstrip("/")
             self.refresh()
         else:

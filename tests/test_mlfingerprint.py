@@ -9,9 +9,9 @@ from pathlib import Path
 
 import pytest
 
-import mlfingerprint as fp
-from mlfingerprint.cli import main as cli
-from mlfingerprint.splits import detect_split, hash_split, parse_ratios
+import dataset_fingerprint as fp
+from dataset_fingerprint.cli import main as cli
+from dataset_fingerprint.splits import detect_split, hash_split, parse_ratios
 
 
 # ----------------------------------------------------------------- fixtures
@@ -193,7 +193,7 @@ def test_fsspec_remote_ledger(tmp_path, image_folder):
 
 
 def test_databricks_uri_normalisation():
-    from mlfingerprint.storage import normalize_uri
+    from dataset_fingerprint.storage import normalize_uri
 
     assert normalize_uri("dbfs:/mnt/x") in ("/dbfs/mnt/x", "dbfs://mnt/x")
     assert normalize_uri("/Volumes/main/ml/raw") == "/Volumes/main/ml/raw"
@@ -229,7 +229,7 @@ def imu_csv(path: Path, n=200, hz=100, t0=1_715_000_000_000_000_000):
 
 
 def test_modality_detection_for_sensors():
-    from mlfingerprint.modality import detect_modality
+    from dataset_fingerprint.modality import detect_modality
 
     assert detect_modality("drive1/radar_front/000001.bin") == "radar"
     assert detect_modality("drive1/imu/accel.csv") == "imu"

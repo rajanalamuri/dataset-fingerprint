@@ -17,7 +17,7 @@
 Train/test leakage keeps resurfacing in published benchmarks, yet the tools teams use to version
 datasets record \emph{what} the data is, not whether its splits are sound. We argue that split
 hygiene belongs in the same step that fingerprints a dataset: a commit that writes an immutable
-manifest should also refuse, or loudly flag, leaky splits. We present \textsc{mlfingerprint}, an
+manifest should also refuse, or loudly flag, leaky splits. We present \textsc{dataset-fingerprint}, an
 open-source library that versions datasets of any modality on any object store as a manifest of
 content hashes, and at commit time keeps recordings and frame sequences together, detects
 augmented copies, exact and near-duplicate files, repeated text records, temporal overlap and
@@ -67,7 +67,7 @@ of the commit (\S\ref{sec:design}); (2) group-aware automatic splitting and chec
 images, audio, video frames, sensor streams, text and tables on local disk, S3, Azure Blob, GCS and
 Databricks volumes; (3) an evaluation against independent ground truth on four public datasets,
 including a reproduction of the ciFAIR near-duplicate audit that surfaces duplicates its list
-misses (\S\ref{sec:eval}). The library is MIT-licensed \cite{mlfingerprint}.
+misses (\S\ref{sec:eval}). The library is MIT-licensed \cite{dataset-fingerprint}.
 
 \section{Design}\label{sec:design}
 \textbf{Version the description, not the data.} A version is an immutable folder holding an
@@ -118,7 +118,7 @@ credentials are never written to manifests, and loaders never unpickle data.
 
 \section{Evaluation}\label{sec:eval}
 All runs used two vCPUs on local disk. Ground truth was computed from the raw dataset files without
-\textsc{mlfingerprint}.
+\textsc{dataset-fingerprint}.
 
 \textbf{Correctness and cost.} On MNIST \cite{lecun1998mnist} and Fashion-MNIST \cite{xiao2017fashion}
 (70,000 PNGs each, raw files checked against published MD5s), file counts, per-split class counts and

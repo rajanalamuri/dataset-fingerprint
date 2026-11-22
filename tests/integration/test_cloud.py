@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-import mlfingerprint as fp
+import dataset_fingerprint as fp
 
 pytestmark = pytest.mark.integration
 
@@ -57,7 +57,7 @@ def test_cas_snapshot_survives_source_changes_and_checks_out(cloud, tmp_path):
     assert v2.semver == "1.1.0" and v2["source"]["objects_written"] == 2
     assert v1.verify().ok  # old snapshot untouched
     out = Path(v1.checkout(str(tmp_path / "co"), mode="copy"))
-    files = [p for p in out.rglob("*") if p.is_file() and p.name != ".mlfingerprint.json"]
+    files = [p for p in out.rglob("*") if p.is_file() and p.name != ".dataset-fingerprint.json"]
     assert len(files) == 6 * 7
     assert any(p.read_text() == "img-1-1" for p in files)  # the pre-overwrite content
 
@@ -125,7 +125,7 @@ def test_cross_cloud_s3_source_azure_ledger(s3, azure):
 def test_cli_end_to_end_on_s3(s3, s3_server, tmp_path):
     seed_drives(s3, runs=6, frames=1)
     env = dict(os.environ, AWS_ENDPOINT_URL=s3_server, FINGERPRINT_ROOT=s3.uri("ledgers", "cli"))
-    run = lambda *a: subprocess.run([sys.executable, "-m", "mlfingerprint", *a], env=env, capture_output=True, text=True)  # noqa: E731
+    run = lambda *a: subprocess.run([sys.executable, "-m", "dataset-fingerprint", *a], env=env, capture_output=True, text=True)  # noqa: E731
     r = run("commit", s3.uri("drives"), "-n", "drives", "-m", "ci", "--probe", "-q", "--json")
     assert r.returncode == 0, r.stderr
     assert json.loads(r.stdout)["version"] == "drives-v1.0.0"

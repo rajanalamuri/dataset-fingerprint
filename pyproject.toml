@@ -3,7 +3,7 @@ requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mlfingerprint"
+name = "dataset-fingerprint"
 dynamic = ["version"]
 description = "A lockfile for training data: manifest-based dataset versioning, lineage and leakage checks for any modality (vision, audio, sensors, NLP, time series) on any storage (local, S3, Azure, GCS, Databricks)."
 readme = "README.md"
@@ -31,30 +31,30 @@ gcs = ["fsspec>=2023.1", "gcsfs>=2023.1"]
 azure = ["fsspec>=2023.1", "adlfs>=2023.1"]
 databricks = ["fsspec>=2023.1", "requests>=2.25"]
 hf = ["fsspec>=2023.1", "huggingface_hub>=0.20"]
-cloud = ["mlfingerprint[s3,gcs,azure,databricks,hf]"]
+cloud = ["dataset-fingerprint[s3,gcs,azure,databricks,hf]"]
 image = ["Pillow>=9.1"]
-all = ["mlfingerprint[cloud,image]"]
+all = ["dataset-fingerprint[cloud,image]"]
 test = ["pytest>=7", "pytest-cov>=4", "Pillow>=9.1"]
-integration = ["mlfingerprint[azure,gcs,test]", "s3fs>=2023.1", "moto[server]>=5", "pytest-timeout>=2"]
+integration = ["dataset-fingerprint[azure,gcs,test]", "s3fs>=2023.1", "moto[server]>=5", "pytest-timeout>=2"]
 security = ["bandit[toml]>=1.7", "pip-audit>=2.7"]
-dev = ["mlfingerprint[test,integration,security]", "build", "twine", "ruff", "mypy", "pre-commit"]
+dev = ["dataset-fingerprint[test,integration,security]", "build", "twine", "ruff", "mypy", "pre-commit"]
 
 [project.scripts]
-fingerprint = "mlfingerprint.cli:main"
-mlfingerprint = "mlfingerprint.cli:main"
+fingerprint = "dataset_fingerprint.cli:main"
+dataset-fingerprint = "dataset_fingerprint.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/rajanalamuri/mlfingerprint"
-Issues = "https://github.com/rajanalamuri/mlfingerprint/issues"
+Homepage = "https://github.com/rajanalamuri/dataset-fingerprint"
+Issues = "https://github.com/rajanalamuri/dataset-fingerprint/issues"
 
 [tool.setuptools.dynamic]
-version = { attr = "mlfingerprint.__version__" }
+version = { attr = "dataset_fingerprint.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-mlfingerprint = ["py.typed"]
+dataset_fingerprint = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -66,7 +66,7 @@ markers = [
 filterwarnings = ["ignore::pytest.PytestUnhandledThreadExceptionWarning"]
 
 [tool.coverage.run]
-source = ["mlfingerprint"]
+source = ["dataset_fingerprint"]
 branch = true
 
 [tool.coverage.report]

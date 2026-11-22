@@ -1,21 +1,21 @@
 # Publishing
 
-Nothing has been published yet. The name `mlfingerprint` was free on PyPI on 2026-11-22 (decide the final name first; see below).
+Nothing has been published yet. The name `dataset-fingerprint` was free on PyPI on 2026-11-22 (decide the final name first; see below).
 
 ## The recommended path
 
-1. **Pick the final name** (`mlfingerprint`, `dataseal`, …). Renaming after a PyPI release is painful; before it, it is a search-and-replace.
+1. **Pick the final name** (`dataset-fingerprint`, `dataseal`, …). Renaming after a PyPI release is painful; before it, it is a search-and-replace.
 2. **Make the GitHub repo public early.** JOSS and most reviewers want real public history, issues and CI runs, not a code dump.
    - Settings → Code security: enable *Private vulnerability reporting*, *Dependabot alerts*, *Secret scanning + push protection*.
    - Branch protection on `main`: require the `ci` and `security` checks, require PRs, block force-pushes.
 3. **One-time Trusted Publishing setup (no API tokens ever)**
    - test.pypi.org and pypi.org → *Your account → Publishing → Add a pending publisher*:
-     owner `rajanalamuri`, repo `mlfingerprint`, workflow `release.yml`, environments `testpypi` / `pypi`.
+     owner `rajanalamuri`, repo `dataset-fingerprint`, workflow `release.yml`, environments `testpypi` / `pypi`.
    - GitHub → Settings → Environments: create `testpypi` and `pypi`; on `pypi` add **yourself as required reviewer**
      and restrict it to tags `v*`.
 4. **Dry run**: Actions → *release* → *Run workflow*. It runs CI + security, builds once, attests provenance and uploads
-   to **TestPyPI**. Check it: `pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple mlfingerprint`.
-5. **Release**: bump `__version__` in `src/mlfingerprint/__init__.py`, add `## 0.1.0` to `CHANGELOG.md`, then
+   to **TestPyPI**. Check it: `pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple dataset-fingerprint`.
+5. **Release**: bump `__version__` in `src/dataset_fingerprint/__init__.py`, add `## 0.1.0` to `CHANGELOG.md`, then
    `git tag v0.1.0 && git push --tags`. The workflow refuses to run if the tag, version and changelog disagree, publishes
    to TestPyPI, waits for your approval, publishes to PyPI (with PEP 740 attestations), and creates the GitHub Release
    with notes from the changelog.
@@ -36,7 +36,7 @@ Nothing has been published yet. The name `mlfingerprint` was free on PyPI on 202
 ## Making it citable (Zenodo DOI)
 
 1. Make the repository **public** (Zenodo only archives public repos).
-2. Sign in at zenodo.org with GitHub → *GitHub* tab → flip the switch for `rajanalamuri/mlfingerprint`.
+2. Sign in at zenodo.org with GitHub → *GitHub* tab → flip the switch for `rajanalamuri/dataset-fingerprint`.
 3. Create a GitHub **Release** (the release workflow already does this on `v*` tags). Zenodo archives it and mints a
    DOI using `.zenodo.json`; it also gives a *concept DOI* that always points at the latest version.
 4. Add the DOI badge to the README and the DOI to `CITATION.cff` (`doi:` field).

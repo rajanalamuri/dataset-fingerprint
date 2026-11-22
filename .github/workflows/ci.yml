@@ -85,7 +85,7 @@ jobs:
       - name: Wheel installs clean with zero runtime dependencies
         run: |
           python -m venv /tmp/v && /tmp/v/bin/pip install dist/*.whl
-          test -z "$(/tmp/v/bin/pip show mlfingerprint | sed -n 's/^Requires: //p')"
+          test -z "$(/tmp/v/bin/pip show dataset-fingerprint | sed -n 's/^Requires: //p')"
           /tmp/v/bin/fingerprint --version
           /tmp/v/bin/python examples/poc_multimodal.py /tmp/poc > /tmp/poc.log && tail -20 /tmp/poc.log
       - uses: actions/upload-artifact@v4

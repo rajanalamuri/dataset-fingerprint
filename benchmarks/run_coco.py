@@ -1,4 +1,4 @@
-"""Benchmark mlfingerprint on COCO 2017.
+"""Benchmark dataset-fingerprint on COCO 2017.
 
 Part A - the full COCO 2017 annotation set (122,218 YOLO label files for train2017 + val2017,
          plus the official instances_val2017.json), as redistributed by Ultralytics.
@@ -24,7 +24,7 @@ from pathlib import Path
 
 from PIL import Image
 
-import mlfingerprint as fp
+import dataset_fingerprint as fp
 
 COCO80 = [
     "person",
@@ -132,7 +132,7 @@ def part_a(root: Path, work: Path) -> dict:
         shutil.rmtree(src)
     shutil.copytree(root / "coco", src)
     lab = src / "labels"
-    # ---- ground truth, computed without mlfingerprint
+    # ---- ground truth, computed without dataset-fingerprint
     gt_files = {s: len(list((lab / s).glob("*.txt"))) for s in ("train2017", "val2017")}
     gt_objects = {s: yolo_counts(lab / s) for s in ("train2017", "val2017")}
     official = json.loads((src / "annotations" / "instances_val2017.json").read_text())
@@ -153,7 +153,7 @@ def part_a(root: Path, work: Path) -> dict:
     gt_dup_files = sum(len(v) - 1 for v in dup_groups)
     gt_cross = sum(1 for v in dup_groups if len({x.split("/")[0] for x in v}) > 1)
 
-    # ---- mlfingerprint
+    # ---- dataset-fingerprint
     os.environ["FINGERPRINT_CACHE"] = str(work / "cache-a.sqlite")
     lg = fp.Ledger(str(work / "ledger-a"), name="coco2017-annotations")
     T: dict = {}
@@ -198,7 +198,7 @@ def part_a(root: Path, work: Path) -> dict:
             "top5_train": gt_objects["train2017"].most_common(5),
         },
         "timings_s": T,
-        "mlfingerprint": {
+        "dataset-fingerprint": {
             "version": v1.version,
             "fingerprint": v1.fingerprint,
             "total_files": m["metadata"]["total_files"],
@@ -273,7 +273,7 @@ def part_b(root: Path, work: Path) -> dict:
             "top_resolutions": sizes.most_common(3),
         },
         "timings_s": T,
-        "mlfingerprint": {
+        "dataset-fingerprint": {
             "splits": {k: x["files"] for k, x in m["metadata"]["splits"].items()},
             "group_by": m["split_strategy"]["group_by"],
             "groups": m["split_strategy"].get("groups"),
@@ -304,7 +304,7 @@ def main():
             "python": platform.python_version(),
             "platform": platform.platform(),
             "cpus": os.cpu_count(),
-            "mlfingerprint": fp.__version__,
+            "dataset-fingerprint": fp.__version__,
         },
         "parts": [part_a(a.root, a.work), part_b(a.root, a.work)],
     }

@@ -3,7 +3,7 @@
     "python": "3.13.18",
     "platform": "Linux-6.18.44-fc-v726-x86_64-with-glibc2.39",
     "cpus": 2,
-    "mlfingerprint": "0.1.0"
+    "dataset-fingerprint": "0.1.0"
   },
   "parts": [
     {
@@ -77,7 +77,7 @@
         "commit_after_one_change": 27.213,
         "commit_with_leak": 27.231
       },
-      "mlfingerprint": {
+      "dataset-fingerprint": {
         "version": "coco2017-annotations-v1.0.0",
         "fingerprint": "sha256:a480bd1d8b1f93f30e9aa1912421832d1b1a40940499e9b452e2b15e6d63a940",
         "total_files": 122224,
@@ -162,7 +162,7 @@
         "commit_with_probe": 0.127,
         "verify_after_tamper": 0.03
       },
-      "mlfingerprint": {
+      "dataset-fingerprint": {
         "splits": {
           "train": 193,
           "val": 38,

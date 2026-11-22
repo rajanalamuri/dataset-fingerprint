@@ -106,7 +106,7 @@ def detect_modality(path: str, rules: Rules = None) -> str:
 
 
 def register_extension(ext: str, modality: str) -> None:
-    """Teach mlfingerprint a custom extension, e.g. register_extension('rdc', 'radar')."""
+    """Teach dataset-fingerprint a custom extension, e.g. register_extension('rdc', 'radar')."""
     ext = ext.lower().lstrip(".")
     MODALITY_EXTENSIONS.setdefault(modality, set()).add(ext)
     _EXT_TO_MODALITY[ext] = modality

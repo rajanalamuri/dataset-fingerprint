@@ -37,7 +37,7 @@ def default_cache_path() -> str:
     if env:
         return env
     base = os.environ.get("XDG_CACHE_HOME") or os.path.join(os.path.expanduser("~"), ".cache")
-    return os.path.join(base, "mlfingerprint", "hashes.sqlite")
+    return os.path.join(base, "dataset-fingerprint", "hashes.sqlite")
 
 
 class HashCache:

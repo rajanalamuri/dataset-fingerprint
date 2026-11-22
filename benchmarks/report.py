@@ -20,7 +20,7 @@ def row(label, fn):
 
 
 T = lambda k: lambda d: f"{d['timings_s'][k]:.2f} s"  # noqa: E731
-M = lambda d: d["mlfingerprint"]  # noqa: E731
+M = lambda d: d["dataset-fingerprint"]  # noqa: E731
 G = lambda d: d["ground_truth"]  # noqa: E731
 ok = lambda b: "✅" if b else "❌"  # noqa: E731
 names = " | ".join(d["dataset"] for d in D)
@@ -30,15 +30,15 @@ md = f"""# Benchmarks: MNIST, Fashion-MNIST, COCO 2017 and CIFAR-10
 
 ## MNIST and Fashion-MNIST
 
-mlfingerprint {E["mlfingerprint"]} on two well-known 70,000-image datasets, each exported to the standard
+dataset-fingerprint {E["dataset-fingerprint"]} on two well-known 70,000-image datasets, each exported to the standard
 ImageFolder layout (`train/<class>/*.png`, `test/<class>/*.png`). The raw files were checked against
-their published MD5 checksums, and every count mlfingerprint reports was cross-checked against ground
-truth computed **independently from the raw IDX pixel arrays** (no PNGs, no mlfingerprint involved).
+their published MD5 checksums, and every count dataset-fingerprint reports was cross-checked against ground
+truth computed **independently from the raw IDX pixel arrays** (no PNGs, no dataset-fingerprint involved).
 
 Machine: {E["cpus"]} vCPUs, {E["platform"]}, Python {E["python"]}. Local disk, `reference` mode unless noted.
 Reproduce: `bash benchmarks/download.sh raw && python benchmarks/run_benchmark.py --raw raw --work work && python benchmarks/report.py`
 
-## Correctness: mlfingerprint vs ground truth
+## Correctness: dataset-fingerprint vs ground truth
 
 | Check | {names} |
 {sep}
@@ -62,7 +62,7 @@ Reproduce: `bash benchmarks/download.sh raw && python benchmarks/run_benchmark.p
 {row("Dataset fingerprint", lambda d: "`" + M(d)["fingerprint"][:23] + "…`")}
 
 Both datasets are clean at the **exact**-duplicate level: no image appears twice and no test image is a byte-for-byte
-copy of a training image, and mlfingerprint reports exactly that. Exact hashing cannot see **near**-duplicates
+copy of a training image, and dataset-fingerprint reports exactly that. Exact hashing cannot see **near**-duplicates
 (re-encoded, resized or slightly shifted copies). Those are known to exist in other benchmarks, e.g. CIFAR-10/100,
 and are caught by the opt-in perceptual check (`near_duplicates=True`); see the CIFAR-10 section below.
 
@@ -117,8 +117,8 @@ CP = HERE / "results" / "coco.json"
 if CP.exists():
     C = json.loads(CP.read_text())
     A, B = C["parts"]
-    ga, ma, ta = A["ground_truth"], A["mlfingerprint"], A["timings_s"]
-    gb, mb_, tb = B["ground_truth"], B["mlfingerprint"], B["timings_s"]
+    ga, ma, ta = A["ground_truth"], A["dataset-fingerprint"], A["timings_s"]
+    gb, mb_, tb = B["ground_truth"], B["dataset-fingerprint"], B["timings_s"]
     chk = lambda d: "\n".join(f"| {k.replace('_', ' ')} | {ok(v)} |" for k, v in d.items())  # noqa: E731
     top5 = ", ".join(f"{k} {v:,}" for k, v in ga["top5_train"])
     groups = "; ".join(" = ".join(g) for g in ga["identical_label_file_groups"])
@@ -139,7 +139,7 @@ Reproduce: `bash benchmarks/download_coco.sh .bench/coco && python benchmarks/ru
 
 ## Part A: 122,224 annotation files
 
-| Check (ground truth computed without mlfingerprint) | |
+| Check (ground truth computed without dataset-fingerprint) | |
 |---|:-:|
 {chk(A["checks"])}
 
@@ -183,11 +183,11 @@ pixels.
 {chk(B["checks"])}
 
 {gb["images"]} JPEGs in {gb["distinct_resolutions"]} different resolutions (most common: {", ".join(f"{k} ×{v}" for k, v in gb["top_resolutions"])}),
-all read correctly by the probe. With no splits given, mlfingerprint hash-split the folder {", ".join(f"{k} {v}" for k, v in mb_["splits"].items())} files and kept
+all read correctly by the probe. With no splits given, dataset-fingerprint hash-split the folder {", ".join(f"{k} {v}" for k, v in mb_["splits"].items())} files and kept
 every image in the same split as its label file. Flipping one byte inside one JPEG was caught by `verify`.
 
 **Found and fixed by this run:** COCO names images by sparse numeric ids (`000000000009.jpg`, `000000000025.jpg`,
-…). The first version of mlfingerprint mistook that numbering for video frames and grouped unrelated photos into
+…). The first version of dataset-fingerprint mistook that numbering for video frames and grouped unrelated photos into
 blocks, which skewed the split (201 / 17 / 40). Frame sequences now have to be densely or regularly numbered (frame
 counters, fixed-rate timestamps). Irregular ids are treated as independent samples, and a regression test covers it.
 
@@ -213,7 +213,7 @@ if FP.exists():
 # CIFAR-10: near-duplicates across splits (reproducing ciFAIR)
 
 Barz & Denzler (ciFAIR) found **{F["cifair_listed"]}** CIFAR-10 test images with a near-duplicate in the training set,
-using CNN features plus manual review. mlfingerprint has no CNN: `commit(..., near_duplicates=T)` computes a 64-bit
+using CNN features plus manual review. dataset-fingerprint has no CNN: `commit(..., near_duplicates=T)` computes a 64-bit
 difference hash (dHash) per image and runs an exact Hamming search across splits. Exact byte-level duplicates across
 splits: **{F["exact_duplicates_across_splits"]}**.
 

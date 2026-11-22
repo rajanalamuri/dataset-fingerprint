@@ -1,29 +1,29 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/hero-dark.svg">
-    <img src="docs/assets/hero-light.svg" alt="mlfingerprint: a lockfile for your training data" width="100%">
+    <img src="docs/assets/hero-light.svg" alt="dataset-fingerprint: a lockfile for your training data" width="100%">
   </picture>
 </p>
 
 <p align="center">
-  <a href="https://github.com/rajanalamuri/mlfingerprint/actions/workflows/ci.yml"><img src="https://github.com/rajanalamuri/mlfingerprint/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
-  <a href="https://github.com/rajanalamuri/mlfingerprint/actions/workflows/security.yml"><img src="https://github.com/rajanalamuri/mlfingerprint/actions/workflows/security.yml/badge.svg" alt="security"></a>
+  <a href="https://github.com/rajanalamuri/dataset-fingerprint/actions/workflows/ci.yml"><img src="https://github.com/rajanalamuri/dataset-fingerprint/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
+  <a href="https://github.com/rajanalamuri/dataset-fingerprint/actions/workflows/security.yml"><img src="https://github.com/rajanalamuri/dataset-fingerprint/actions/workflows/security.yml/badge.svg" alt="security"></a>
   <img src="https://img.shields.io/badge/python-3.9%E2%80%933.13-101418" alt="python 3.9-3.13">
   <img src="https://img.shields.io/badge/dependencies-zero-ffd84a" alt="zero dependencies">
   <img src="https://img.shields.io/badge/license-MIT-101418" alt="MIT">
 </p>
 
-# mlfingerprint
+# dataset-fingerprint
 
 **A lockfile for your training data.** Every dataset version gets a fingerprint: a manifest describing exactly which bytes were in it, how it was split, where it came from, and which models were trained on it. It works for any modality (video, frames, audio, images, radar, lidar, IMU, text, tabular, time series) on any storage (local, S3, Azure, GCS, Databricks, HDFS, HF…).
 
 ```bash
-pip install mlfingerprint             # zero dependencies: local disks, Databricks /Volumes + /dbfs
-pip install "mlfingerprint[s3]"       # + S3 / MinIO / R2        [azure] [gcs] [databricks] [hf] [cloud] [all]
+pip install dataset-fingerprint             # zero dependencies: local disks, Databricks /Volumes + /dbfs
+pip install "dataset-fingerprint[s3]"       # + S3 / MinIO / R2        [azure] [gcs] [databricks] [hf] [cloud] [all]
 ```
 
 ```python
-import mlfingerprint as fp
+import dataset_fingerprint as fp
 
 v  = fp.commit("s3://raw/drives", "s3://ml/ledgers/drives", message="added 3 batches")  # version
 ds = fp.load("s3://ml/ledgers/drives", "prod")                                         # retrieve (tag or 1.2.0)
@@ -203,7 +203,7 @@ Upstream of a feature store, alongside your experiment tracker. If you outgrow i
 
 Run on **MNIST**, **Fashion-MNIST** (70,000 images each), **CIFAR-10** and the full **COCO 2017** annotation set (122,224 files,
 886,282 objects) plus real COCO images. Every number is cross-checked against ground truth computed independently
-of mlfingerprint. Full report and how to reproduce it: [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+of dataset-fingerprint. Full report and how to reproduce it: [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
 | 70,000 files, 2 vCPUs | MNIST | Fashion-MNIST |
 |---|---:|---:|
@@ -238,14 +238,14 @@ Unit, integration (S3, Azure, GCS emulators) and security test suites run in CI 
 
 ## Citing
 
-If mlfingerprint helps your work, please cite it. GitHub's **"Cite this repository"** button uses [`CITATION.cff`](CITATION.cff),
+If dataset-fingerprint helps your work, please cite it. GitHub's **"Cite this repository"** button uses [`CITATION.cff`](CITATION.cff),
 and every tagged release is archived with a DOI on Zenodo.
 
 ```bibtex
-@software{alamuri_mlfingerprint,
+@software{alamuri_dataset-fingerprint,
   author  = {Alamuri, Raj},
-  title   = {mlfingerprint: a lockfile for training data},
-  url     = {https://github.com/rajanalamuri/mlfingerprint},
+  title   = {dataset-fingerprint: a lockfile for training data},
+  url     = {https://github.com/rajanalamuri/dataset-fingerprint},
   version = {0.1.0},
   year    = {2026}
 }

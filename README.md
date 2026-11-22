@@ -1,3 +1,18 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/hero-dark.svg">
+    <img src="docs/assets/hero-light.svg" alt="mlfingerprint: a lockfile for your training data" width="100%">
+  </picture>
+</p>
+
+<p align="center">
+  <a href="https://github.com/rajanalamuri/mlfingerprint/actions/workflows/ci.yml"><img src="https://github.com/rajanalamuri/mlfingerprint/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
+  <a href="https://github.com/rajanalamuri/mlfingerprint/actions/workflows/security.yml"><img src="https://github.com/rajanalamuri/mlfingerprint/actions/workflows/security.yml/badge.svg" alt="security"></a>
+  <img src="https://img.shields.io/badge/python-3.9%E2%80%933.13-101418" alt="python 3.9-3.13">
+  <img src="https://img.shields.io/badge/dependencies-zero-ffd84a" alt="zero dependencies">
+  <img src="https://img.shields.io/badge/license-MIT-101418" alt="MIT">
+</p>
+
 # mlfingerprint
 
 **A lockfile for your training data.** Every dataset version gets a fingerprint: a manifest describing exactly which bytes were in it, how it was split, where it came from, and which models were trained on it. It works for any modality (video, frames, audio, images, radar, lidar, IMU, text, tabular, time series) on any storage (local, S3, Azure, GCS, Databricks, HDFS, HF…).
@@ -116,6 +131,11 @@ ds.split_for_time(row["timestamp"])   # -> 'train' | 'val' | 'test' inside your 
 Time comes from timestamp columns (`--probe`; ns/µs/ms/s epochs or ISO), dates or epochs in paths, or local mtimes.
 
 ## CLI
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/cli-dark.svg">
+  <img src="docs/assets/cli-light.svg" alt="Terminal demo: install, commit an S3 dataset, tag it prod, verify catches a modified file" width="100%">
+</picture>
 
 ```bash
 export FINGERPRINT_ROOT=s3://ml/ledgers/drives

@@ -92,3 +92,6 @@ line-length = 150
 [tool.ruff.lint]
 select = ["E", "F", "W", "B"]
 ignore = ["E731"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["E501"]   # inline SVG/CSS templates

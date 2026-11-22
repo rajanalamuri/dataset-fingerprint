@@ -2,8 +2,8 @@
 PY ?= python
 
 lint:
-	ruff check src tests examples
-	ruff format --check src tests examples
+	ruff check src tests examples scripts
+	ruff format --check src tests examples scripts
 	mypy src
 
 test:

@@ -1,4 +1,4 @@
-# Benchmarks: MNIST, Fashion-MNIST and COCO 2017
+# Benchmarks: MNIST, Fashion-MNIST, COCO 2017 and CIFAR-10
 
 ## MNIST and Fashion-MNIST
 
@@ -36,7 +36,7 @@ Reproduce: `bash benchmarks/download.sh raw && python benchmarks/run_benchmark.p
 Both datasets are clean at the **exact**-duplicate level: no image appears twice and no test image is a byte-for-byte
 copy of a training image, and mlfingerprint reports exactly that. Exact hashing cannot see **near**-duplicates
 (re-encoded, resized or slightly shifted copies). Those are known to exist in other benchmarks, e.g. CIFAR-10/100,
-and need perceptual hashing, which is on the roadmap.
+and are caught by the opt-in perceptual check (`near_duplicates=True`); see the CIFAR-10 section below.
 
 ## Behaviour on change
 

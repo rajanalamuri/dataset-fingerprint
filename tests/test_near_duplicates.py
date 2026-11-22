@@ -82,3 +82,18 @@ def test_near_duplicates_without_pillow(tmp_path, monkeypatch):
 def test_threshold_validation(tmp_path):
     with pytest.raises(FingerprintError):
         Ledger(str(tmp_path / "l")).commit(str(tmp_path), near_duplicates=99, quiet=True)
+
+
+def test_summary_counts_eval_pairs_and_hot_buckets(monkeypatch):
+    items = [("train", 0b1), ("val", 0b11), ("test", 0b111), ("test", 0b1)]
+    pairs, hot = perceptual.cross_split_pairs(items, 2)
+    s = perceptual.summarize(["a", "b", "c", "d"], [sp for sp, _ in items], pairs)
+    assert s["with_train_match"] == {"test": 2, "val": 1}
+    assert s["between_eval_splits"] == {"test~val": 1}  # distinct val files matching a test file
+    assert hot == 0
+    assert perceptual.cross_split_pairs(items, 0)[0] == [(0, 3, 0)]
+    monkeypatch.setattr(perceptual, "HOT_BUCKET", 1)
+    _, hot = perceptual.cross_split_pairs(items, 2)
+    assert hot > 0
+    with pytest.raises(ValueError):
+        perceptual.cross_split_pairs(items, 11)

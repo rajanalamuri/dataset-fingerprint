@@ -173,6 +173,19 @@ Source and ledger can be on different clouds. Big buckets are listed in parallel
 
 Upstream of a feature store, alongside your experiment tracker. If you outgrow it (hundreds of interdependent versions, collaborative labelling), the manifests remain plain JSON you can migrate.
 
+## Benchmarks
+
+Run on **MNIST** and **Fashion-MNIST** (70,000 images each), with every number cross-checked against ground truth
+computed independently from the raw pixels. Full report and how to reproduce it: [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+
+| 70,000 files, 2 vCPUs | MNIST | Fashion-MNIST |
+|---|---:|---:|
+| First commit | 19.8 s | 21.5 s |
+| Re-commit, nothing changed | 7.1 s | 7.0 s |
+| `verify` full re-hash / 5 % sample | 4.0 s / 0.17 s | 3.6 s / 0.40 s |
+| One-pixel edit caught · augmentation leak flagged | ✅ · ✅ | ✅ · ✅ |
+| Exact train/test duplicates found (= ground truth) | 0 | 0 |
+
 ## Quality
 
 Unit, integration (S3, Azure, GCS emulators) and security test suites run in CI on Linux and macOS for Python 3.9–3.13, alongside bandit, CodeQL, pip-audit, gitleaks and OpenSSF Scorecard. Releases are built once, carry provenance attestations, and go out through PyPI Trusted Publishing. See [SECURITY.md](SECURITY.md) for the threat model.

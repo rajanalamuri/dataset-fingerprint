@@ -187,9 +187,9 @@ of mlfingerprint. Full report and how to reproduce it: [benchmarks/RESULTS.md](b
 
 | 70,000 files, 2 vCPUs | MNIST | Fashion-MNIST |
 |---|---:|---:|
-| First commit | 19.8 s | 21.5 s |
-| Re-commit, nothing changed | 7.1 s | 7.0 s |
-| `verify` full re-hash / 5 % sample | 4.0 s / 0.17 s | 3.6 s / 0.40 s |
+| First commit | 23.3 s | 22.9 s |
+| Re-commit, nothing changed | 8.1 s | 7.2 s |
+| `verify` full re-hash / 5 % sample | 5.7 s / 0.24 s | 5.5 s / 0.38 s |
 | One-pixel edit caught · augmentation leak flagged | ✅ · ✅ | ✅ · ✅ |
 | Exact train/test duplicates found (= ground truth) | 0 | 0 |
 

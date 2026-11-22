@@ -78,6 +78,7 @@ def cmd_commit(a) -> int:
         parents=a.parent,
         augmentation=a.augmentation,
         content_checks=not a.no_content_checks,
+        near_duplicates=False if a.near_dups is None else a.near_dups,
         time_cutoffs=_kv(a.time_cutoff),
         row_split=_kv(a.row_split),
         extra=json.loads(a.extra) if a.extra else None,
@@ -213,6 +214,15 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--parent", action="append", help="derived from: ROOT@VERSION (repeatable)")
     c.add_argument("--augmentation", default="warn", choices=["warn", "error", "ignore"])
     c.add_argument("--no-content-checks", action="store_true", help="skip record-level train/test overlap check")
+    c.add_argument(
+        "--near-dups",
+        nargs="?",
+        type=int,
+        const=4,
+        default=None,
+        metavar="T",
+        help="flag re-encoded/resized copies of the same image across splits (dHash Hamming <= T, default 4; needs Pillow)",
+    )
     c.add_argument("--extra", help="JSON object stored in the manifest")
     c.add_argument("--group-by", default="auto", help="auto (recording/sequence-safe) | file | parent | stem | regex - what stays in one split")
     c.add_argument("--modality", action="append", help="NAME=GLOB modality rule, e.g. radar='*/mmwave/**' (repeatable)")

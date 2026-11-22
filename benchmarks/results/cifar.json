@@ -1,0 +1,276 @@
+{
+  "dataset": "CIFAR-10 (50,000 train / 10,000 test, PNG)",
+  "reference": "ciFAIR duplicates_cifar10.csv (Barz & Denzler 2020)",
+  "cifair_listed": 286,
+  "cifair_by_judgment": {
+    "1": 249,
+    "2": 37
+  },
+  "files": {
+    "test": 10000,
+    "train": 50000
+  },
+  "exact_duplicates_across_splits": 0,
+  "manifest_near_duplicates_T4": {
+    "pairs": 104,
+    "with_train_match": {
+      "test": 91
+    },
+    "between_eval_splits": {},
+    "threshold": 4,
+    "hashed": 60000,
+    "skipped_flat": 0
+  },
+  "sweep": [
+    {
+      "threshold": 0,
+      "test_images_flagged": 1,
+      "in_cifair_list": 0,
+      "precision_vs_cifair": 0.0,
+      "recall_vs_cifair": 0.0,
+      "matched_same_train_image": 0,
+      "recovered_by_judgment": {
+        "judgment_1": 0,
+        "judgment_2": 0
+      },
+      "search_seconds": 0.02,
+      "skipped_hot_bucket_items": 0
+    },
+    {
+      "threshold": 2,
+      "test_images_flagged": 34,
+      "in_cifair_list": 22,
+      "precision_vs_cifair": 0.647,
+      "recall_vs_cifair": 0.077,
+      "matched_same_train_image": 19,
+      "recovered_by_judgment": {
+        "judgment_1": 22,
+        "judgment_2": 0
+      },
+      "search_seconds": 0.18,
+      "skipped_hot_bucket_items": 0
+    },
+    {
+      "threshold": 4,
+      "test_images_flagged": 91,
+      "in_cifair_list": 63,
+      "precision_vs_cifair": 0.692,
+      "recall_vs_cifair": 0.22,
+      "matched_same_train_image": 55,
+      "recovered_by_judgment": {
+        "judgment_1": 63,
+        "judgment_2": 0
+      },
+      "search_seconds": 1.18,
+      "skipped_hot_bucket_items": 0
+    },
+    {
+      "threshold": 6,
+      "test_images_flagged": 169,
+      "in_cifair_list": 102,
+      "precision_vs_cifair": 0.604,
+      "recall_vs_cifair": 0.357,
+      "matched_same_train_image": 93,
+      "recovered_by_judgment": {
+        "judgment_1": 98,
+        "judgment_2": 4
+      },
+      "search_seconds": 8.61,
+      "skipped_hot_bucket_items": 0
+    },
+    {
+      "threshold": 8,
+      "test_images_flagged": 360,
+      "in_cifair_list": 153,
+      "precision_vs_cifair": 0.425,
+      "recall_vs_cifair": 0.535,
+      "matched_same_train_image": 137,
+      "recovered_by_judgment": {
+        "judgment_1": 144,
+        "judgment_2": 9
+      },
+      "search_seconds": 38.74,
+      "skipped_hot_bucket_items": 0
+    },
+    {
+      "threshold": 10,
+      "test_images_flagged": 834,
+      "in_cifair_list": 194,
+      "precision_vs_cifair": 0.233,
+      "recall_vs_cifair": 0.678,
+      "matched_same_train_image": 174,
+      "recovered_by_judgment": {
+        "judgment_1": 183,
+        "judgment_2": 11
+      },
+      "search_seconds": 119.56,
+      "skipped_hot_bucket_items": 5130
+    }
+  ],
+  "unlisted_T4_examples": [
+    [
+      "test/frog/01513.png",
+      "train/frog/06451.png",
+      0
+    ],
+    [
+      "test/frog/04413.png",
+      "train/frog/29752.png",
+      1
+    ],
+    [
+      "test/horse/05194.png",
+      "train/horse/20016.png",
+      1
+    ],
+    [
+      "test/cat/09141.png",
+      "train/cat/06167.png",
+      1
+    ],
+    [
+      "test/horse/09186.png",
+      "train/horse/37082.png",
+      1
+    ],
+    [
+      "test/automobile/06173.png",
+      "train/automobile/04039.png",
+      2
+    ],
+    [
+      "test/deer/02925.png",
+      "train/deer/36552.png",
+      2
+    ],
+    [
+      "test/deer/03095.png",
+      "train/deer/01373.png",
+      2
+    ],
+    [
+      "test/frog/00311.png",
+      "train/frog/43661.png",
+      2
+    ],
+    [
+      "test/frog/07163.png",
+      "train/frog/07252.png",
+      2
+    ],
+    [
+      "test/cat/03572.png",
+      "train/cat/08286.png",
+      2
+    ],
+    [
+      "test/deer/02406.png",
+      "train/deer/28213.png",
+      2
+    ],
+    [
+      "test/airplane/04937.png",
+      "train/airplane/05994.png",
+      3
+    ],
+    [
+      "test/airplane/05762.png",
+      "train/airplane/01711.png",
+      3
+    ],
+    [
+      "test/deer/02925.png",
+      "train/deer/41148.png",
+      3
+    ],
+    [
+      "test/airplane/04037.png",
+      "train/airplane/04337.png",
+      3
+    ],
+    [
+      "test/horse/09020.png",
+      "train/horse/49063.png",
+      3
+    ],
+    [
+      "test/airplane/02909.png",
+      "train/airplane/04651.png",
+      4
+    ],
+    [
+      "test/airplane/06574.png",
+      "train/airplane/04651.png",
+      4
+    ],
+    [
+      "test/frog/08150.png",
+      "train/frog/27595.png",
+      4
+    ],
+    [
+      "test/frog/06547.png",
+      "train/frog/32537.png",
+      4
+    ],
+    [
+      "test/truck/02899.png",
+      "train/truck/27807.png",
+      4
+    ],
+    [
+      "test/airplane/04387.png",
+      "train/bird/47563.png",
+      4
+    ],
+    [
+      "test/bird/02564.png",
+      "train/bird/43135.png",
+      4
+    ],
+    [
+      "test/airplane/09482.png",
+      "train/airplane/10589.png",
+      4
+    ],
+    [
+      "test/cat/03391.png",
+      "train/cat/44103.png",
+      4
+    ],
+    [
+      "test/frog/05761.png",
+      "train/frog/23269.png",
+      4
+    ],
+    [
+      "test/truck/02807.png",
+      "train/truck/25507.png",
+      4
+    ],
+    [
+      "test/airplane/05587.png",
+      "train/airplane/31635.png",
+      4
+    ]
+  ],
+  "timings_sec": {
+    "materialise_png": 0.0,
+    "commit_plain_cold": 7.5,
+    "commit_with_near_dups_cold": 35.8,
+    "recommit_with_near_dups_warm": 10.6
+  },
+  "unchanged_recommit_same_fingerprint": true,
+  "env": {
+    "python": "3.13.18",
+    "machine": "x86_64",
+    "mlfingerprint": "0.1.0",
+    "cpus": 2
+  },
+  "unlisted_T4_review": {
+    "reviewed_pairs": 29,
+    "test_images_near_duplicate": 24,
+    "test_images_different": 4,
+    "reviewer": "single visual review by the author; see cifar_unlisted_review.csv + cifar_unlisted_T4.png"
+  }
+}

@@ -162,3 +162,41 @@ counters, fixed-rate timestamps). Irregular ids are treated as independent sampl
 **Not covered:** the COCO pixels (train2017 18 GB, val2017 1 GB) could not be downloaded here. Committing a COCO folder
 that includes `images/` works the same way and reports exact duplicate images across splits, but this benchmark's
 independent ground-truth checks cover the annotations only.
+
+# CIFAR-10: near-duplicates across splits (reproducing ciFAIR)
+
+Barz & Denzler (ciFAIR) found **286** CIFAR-10 test images with a near-duplicate in the training set,
+using CNN features plus manual review. mlfingerprint has no CNN: `commit(..., near_duplicates=T)` computes a 64-bit
+difference hash (dHash) per image and runs an exact Hamming search across splits. Exact byte-level duplicates across
+splits: **0**.
+
+| dHash distance | Test images flagged | In the ciFAIR list | Recall vs ciFAIR | Search time |
+|---|---:|---:|---:|---:|
+| ≤ 0 | 1 | 0 | 0% | 0.0 s |
+| ≤ 2 | 34 | 22 | 8% | 0.2 s |
+| ≤ 4 | 91 | 63 | 22% | 1.2 s |
+| ≤ 6 | 169 | 102 | 36% | 8.6 s |
+| ≤ 8 | 360 | 153 | 54% | 38.7 s |
+| ≤ 10 | 834 | 194 | 68% | 119.6 s |
+
+**At the default threshold (≤ 4)**, 91 test images are flagged. 63 are in the ciFAIR list.
+The other 28 were reviewed by eye ([pairs](results/cifar_unlisted_review.csv),
+[contact sheet](results/cifar_unlisted_T4.png)): **24 are clearly the same photograph** as a training
+image (colour, contrast or grayscale changes) and 4 are different photos. So about
+**87/91 (96%) of flags are real leaks**, and those
+24 are not in ciFAIR's list, so they are still in the ciFAIR-10 test set (its kept test images are
+pixel-identical to CIFAR-10's).
+
+**Limits, stated plainly:** a 64-bit hash of a 32×32 thumbnail recovers only 22% of ciFAIR's list at ≤ 4 and
+54% at ≤ 8, where precision drops. It finds re-encoded and colour-shifted copies, not crops or re-shoots.
+It is a cheap guard built into every commit; it does not replace an embedding search. One reviewer; the review is in the repo
+so it can be checked.
+
+| Cost (60,000 PNGs) | Time |
+|---|---:|
+| Commit without the check | 7.5 s |
+| Commit with the check (cold) | 35.8 s |
+| Re-commit with the check (hashes cached by sha256) | 10.6 s |
+
+Data: CIFAR-10 binary batches (sha256 pinned in `run_cifar.py`); the test batch was cross-checked against ciFAIR-10.
+Reproduce: `bash benchmarks/download_cifar.sh .bench/cifar10 && python benchmarks/run_cifar.py --root .bench/cifar10 --work .bench/cifar-work`.

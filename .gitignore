@@ -18,3 +18,9 @@ paper/*.out
 paper/main.pdf
 .coverage
 coverage.xml
+
+# paper builds and submission bundles stay local
+*.pdf
+paper/arxiv/
+*.tar.gz
+*.bbl

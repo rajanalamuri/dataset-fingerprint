@@ -1,6 +1,6 @@
 # Paper draft (ACM sigconf)
 
-Build with a TeX Live that has `acmart` (or Overleaf's ACM template):
+Build with a TeX Live that has `acmart` (or Overleaf's ACM template). PDFs and submission bundles are not committed:
 
     cd paper && latexmk -pdf main.tex
 

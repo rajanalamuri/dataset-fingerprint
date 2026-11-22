@@ -1,0 +1,52 @@
+name: security
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 3 * * 1"     # weekly: new CVEs appear without code changes
+  workflow_call:
+permissions:
+  contents: read
+
+jobs:
+  sast-and-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e ".[test,security]"
+      - name: Bandit (static analysis)
+        run: bandit -c pyproject.toml -r src
+      - name: Security regression tests
+        run: pytest -m security -v
+      - name: pip-audit (known CVEs in every optional dependency)
+        run: |
+          python -m venv /tmp/a && /tmp/a/bin/pip install -q ".[all]" pip-audit
+          /tmp/a/bin/pip-audit --skip-editable --strict
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: gitleaks/gitleaks-action@v2
+        env: {GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+
+  codeql:
+    runs-on: ubuntu-latest
+    permissions: {security-events: write, contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with: {languages: python, queries: security-extended}
+      - uses: github/codeql-action/analyze@v3
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with: {fail-on-severity: moderate}

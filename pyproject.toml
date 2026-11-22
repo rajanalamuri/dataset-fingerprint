@@ -1,0 +1,94 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mlfingerprint"
+dynamic = ["version"]
+description = "A lockfile for training data: manifest-based dataset versioning, lineage and leakage checks for any modality (vision, audio, sensors, NLP, time series) on any storage (local, S3, Azure, GCS, Databricks)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Raj Alamuri" }]
+keywords = ["fingerprint", "data lineage", "leakage", "time series", "computer vision", "nlp", "mlops", "data versioning", "dataset", "reproducibility", "manifest", "lineage", "machine learning", "s3", "databricks", "azure"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Software Development :: Version Control",
+  "Typing :: Typed",
+]
+dependencies = []
+
+[project.optional-dependencies]
+s3 = ["fsspec>=2023.1", "s3fs>=2023.1"]
+gcs = ["fsspec>=2023.1", "gcsfs>=2023.1"]
+azure = ["fsspec>=2023.1", "adlfs>=2023.1"]
+databricks = ["fsspec>=2023.1", "requests>=2.25"]
+hf = ["fsspec>=2023.1", "huggingface_hub>=0.20"]
+cloud = ["mlfingerprint[s3,gcs,azure,databricks,hf]"]
+image = ["Pillow>=9"]
+all = ["mlfingerprint[cloud,image]"]
+test = ["pytest>=7", "pytest-cov>=4"]
+integration = ["mlfingerprint[s3,azure,gcs,test]", "moto[server]>=5", "boto3"]
+security = ["bandit[toml]>=1.7", "pip-audit>=2.7"]
+dev = ["mlfingerprint[test,integration,security]", "build", "twine", "ruff", "mypy", "pre-commit"]
+
+[project.scripts]
+fingerprint = "mlfingerprint.cli:main"
+mlfingerprint = "mlfingerprint.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/rajanalamuri/mlfingerprint"
+Issues = "https://github.com/rajanalamuri/mlfingerprint/issues"
+
+[tool.setuptools.dynamic]
+version = { attr = "mlfingerprint.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+mlfingerprint = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+  "integration: needs cloud emulators (moto / Azurite / fake-gcs-server)",
+  "security: security regression tests",
+]
+filterwarnings = ["ignore::pytest.PytestUnhandledThreadExceptionWarning"]
+
+[tool.coverage.run]
+source = ["mlfingerprint"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = true
+exclude_lines = ["pragma: no cover", "if __name__ == .__main__.:"]
+
+[tool.bandit]
+exclude_dirs = ["tests", "examples"]
+
+[tool.mypy]
+follow_imports = "silent"
+exclude = ["tests/", "examples/"]
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_ignores = true
+check_untyped_defs = false
+
+[tool.ruff]
+line-length = 150
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B"]
+ignore = ["E731"]

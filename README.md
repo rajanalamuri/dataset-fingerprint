@@ -10,7 +10,7 @@
   <a href="https://github.com/rajanalamuri/dataset-fingerprint/actions/workflows/security.yml"><img src="https://github.com/rajanalamuri/dataset-fingerprint/actions/workflows/security.yml/badge.svg" alt="security"></a>
   <img src="https://img.shields.io/badge/python-3.9%E2%80%933.13-101418" alt="python 3.9-3.13">
   <img src="https://img.shields.io/badge/dependencies-zero-ffd84a" alt="zero dependencies">
-  <img src="https://img.shields.io/badge/license-MIT-101418" alt="MIT">
+  <img src="https://img.shields.io/badge/license-Apache%202.0-101418" alt="Apache 2.0">
 </p>
 
 # dataset-fingerprint
@@ -264,4 +264,4 @@ and every tagged release is archived with a DOI on Zenodo.
 }
 ```
 
-MIT © Raj Alamuri · Alpha
+Apache License 2.0 © Raj Alamuri · Alpha

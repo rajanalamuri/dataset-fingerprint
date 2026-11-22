@@ -2,7 +2,7 @@
 
 ## 0.1.0
 
-_2026-11-22 · first public release._
+_2026-11-23 · first public release · Apache License 2.0._
 **Core**
 - Immutable versions: manifest + per-file index (sha256) + split lists; manifest written last; commit-race protection.
 - Storage via fsspec: local, S3 (+MinIO/R2), Azure Blob/ADLS, GCS, Databricks (dbfs:/, /dbfs, /Volumes), HF, HDFS…; parallel bucket listing; ETag/mtime hash cache.

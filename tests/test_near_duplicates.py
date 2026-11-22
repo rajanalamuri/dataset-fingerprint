@@ -97,3 +97,30 @@ def test_summary_counts_eval_pairs_and_hot_buckets(monkeypatch):
     assert hot > 0
     with pytest.raises(ValueError):
         perceptual.cross_split_pairs(items, 11)
+
+
+def test_near_duplicates_are_suspected_not_confirmed(tmp_path):
+    src = tmp_path / "data"
+    for sp in ("train", "test"):
+        (src / sp).mkdir(parents=True)
+    for i in range(10):
+        _img(i).save(src / "train" / f"{i}.png")
+        _img(100 + i).save(src / "test" / f"{i}.png")
+    ImageEnhance.Brightness(_img(3)).enhance(1.08).save(src / "test" / "leak.jpg", quality=80)
+    lk = Ledger(str(tmp_path / "l")).commit(str(src), near_duplicates=True, quiet=True, cache=False).manifest["quality"]["leakage"]
+    assert lk["leak_rate"] == 0.0 and lk["suspected_files"] == 1
+    assert "near_duplicates_uninformative" not in lk
+
+
+def test_uninformative_hash_is_called_out(tmp_path):
+    src = tmp_path / "data"
+    for sp in ("train", "test"):
+        (src / sp).mkdir(parents=True)
+    for i in range(10):  # near-identical flat images: every test image "matches"
+        Image.new("L", (28, 28), 0).save(src / "train" / f"{i}.png", optimize=bool(i % 2))
+        im = Image.new("L", (28, 28), 0)
+        im.putpixel((i, i), 40)
+        im.save(src / "test" / f"{i}.png")
+    v = Ledger(str(tmp_path / "l")).commit(str(src), near_duplicates=True, quiet=True, cache=False)
+    assert v.manifest["quality"]["leakage"]["near_duplicates_uninformative"] == ["test"]
+    assert any("cannot tell these images apart" in w for w in v.manifest["lineage"]["warnings"])

@@ -245,4 +245,52 @@ Reproduce: `bash benchmarks/download_cifar.sh .bench/cifar10 && python benchmark
 """
     (HERE / "RESULTS.md").write_text(md)
 
+LP = HERE / "results" / "leak_rates.json"
+if LP.exists():
+    L = json.loads(LP.read_text())["results"]
+
+    def pct(x):
+        return "n/a" if x is None else f"{x:.2%}"
+
+    rows = []
+    for r in L:
+        ev = r["evaluation_files"] or 0
+        bt = {}
+        for sp in (r["by_split"] or {}).values():
+            for k, v in sp["by_type"].items():
+                bt[k] = bt.get(k, 0) + v
+        conf = ", ".join(f"{k.replace('_', ' ')} {v}" for k, v in bt.items() if k != "near_duplicate") or "-"
+        susp = (
+            "-"
+            if r.get("suspected_rate") is None
+            else f"{pct(r['suspected_rate'])}" + (" ⚠ hash uninformative" if r.get("near_duplicates_uninformative") else "")
+        )
+        rows.append(f"| {r['dataset']} | {ev:,} | **{pct(r['leak_rate'])}** | {conf} | {ev - (r['leaked_files'] or 0):,} | {susp} |")
+    md += (
+        """
+# Leak rate and effective test size
+
+**Leak rate** = val/test files that are byte copies of a train file, augmentations of the same file (either
+direction), or overlap train in time, divided by all val/test files. Every leaked file is listed, so the rate is a
+count anyone can check, not a weighted score. **Effective size** is what is left once leaked files are removed.
+**Suspected rate** adds perceptual near-duplicates (likely, not proven).
+
+| Dataset | Val/test files | Leak rate | Why | Effective size | Suspected (incl. near-dups) |
+|---|---:|---:|---|---:|---:|
+"""
+        + "\n".join(rows)
+        + """
+
+- **Planted leaks are recovered exactly.** 50 test images copied into train under new names and 50 flipped test images
+  saved as `<name>_hflip.png` give 100 / 10,000 = **1.00 %**, split 50 / 50 by type, on both datasets.
+- **CIFAR-10**: no byte-level leaks, 0.91 % suspected. Visual review confirmed 87 of those 91 (see the CIFAR section),
+  i.e. at least 0.87 % of the test set, and ciFAIR's own list puts it at 2.86 %.
+- **MNIST / Fashion-MNIST: the perceptual hash is useless here.** A 64-bit hash of a small, centred grayscale object
+  on a flat background matches 47–57 % of test images to *some* training image. The commit now says so
+  (`near_duplicates_uninformative`) instead of reporting a fake leak; the confirmed rate is unaffected.
+- `max_leak_rate=0.005` (CLI `--max-leak-rate 0.5%`) makes the commit fail above 0.5 %, for CI.
+"""
+    )
+    (HERE / "RESULTS.md").write_text(md)
+
 print(md)

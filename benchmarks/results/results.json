@@ -1,0 +1,286 @@
+{
+  "environment": {
+    "python": "3.13.18",
+    "platform": "Linux-6.18.44-fc-v726-x86_64-with-glibc2.39",
+    "cpus": 2,
+    "mlfingerprint": "0.1.0"
+  },
+  "datasets": [
+    {
+      "dataset": "MNIST",
+      "ground_truth": {
+        "train_images": 60000,
+        "test_images": 10000,
+        "train_duplicate_images": 0,
+        "test_duplicate_images": 0,
+        "test_images_also_in_train": 0,
+        "distinct_pixel_arrays_shared_by_train_and_test": 0,
+        "test_in_train_with_different_label": 0,
+        "label_counts": {
+          "train": {
+            "5": 5421,
+            "0": 5923,
+            "4": 5842,
+            "1": 6742,
+            "9": 5949,
+            "2": 5958,
+            "3": 6131,
+            "6": 5918,
+            "7": 6265,
+            "8": 5851
+          },
+          "test": {
+            "7": 1028,
+            "2": 1032,
+            "1": 1135,
+            "0": 980,
+            "4": 982,
+            "9": 1009,
+            "5": 892,
+            "6": 958,
+            "3": 1010,
+            "8": 974
+          }
+        }
+      },
+      "timings_s": {
+        "export_pngs": 6.746,
+        "commit_cold": 19.801,
+        "commit_no_change": 7.098,
+        "verify_full": 3.997,
+        "verify_sample_5pct": 0.17,
+        "verify_quick": 2.416,
+        "verify_after_tamper": 3.213,
+        "commit_after_one_change": 7.593,
+        "commit_new_batch_601_files": 8.54,
+        "cas_snapshot_v1": 24.624,
+        "cas_snapshot_v2": 10.835
+      },
+      "mlfingerprint": {
+        "version": "mnist-v1.0.0",
+        "fingerprint": "sha256:cd7ff2f1f6ae0cf5178eea8de164d270bdd6225e2f48668d8fbda73c01f0072a",
+        "total_files": 70000,
+        "splits": {
+          "train": 60000,
+          "test": 10000
+        },
+        "num_classes": 10,
+        "class_counts": {
+          "train": {
+            "0": 5923,
+            "1": 6742,
+            "2": 5958,
+            "3": 6131,
+            "4": 5842,
+            "5": 5421,
+            "6": 5918,
+            "7": 6265,
+            "8": 5851,
+            "9": 5949
+          },
+          "test": {
+            "0": 980,
+            "1": 1135,
+            "2": 1032,
+            "3": 1010,
+            "4": 982,
+            "5": 892,
+            "6": 958,
+            "7": 1028,
+            "8": 974,
+            "9": 1009
+          }
+        },
+        "resolutions": {
+          "28x28": 70000
+        },
+        "quality_v1": {
+          "duplicate_files": 0,
+          "duplicates_across_splits": 0,
+          "augmented_files": 0,
+          "augmented_by_split": {},
+          "augmentation_cross_split": 0,
+          "augmented_in_eval": 0,
+          "parent_eval_leaks": 0,
+          "empty_files": 0,
+          "unreadable_files": 0,
+          "examples": {}
+        },
+        "duplicates_across_splits_v1": 0,
+        "duplicate_files_v1": 0,
+        "tamper": {
+          "detected": true,
+          "modified": [
+            "test/1/test_02235.png"
+          ],
+          "recommit_version": "mnist-v1.0.1",
+          "bump": "patch"
+        },
+        "new_batch": {
+          "version": "mnist-v1.1.0",
+          "bump": "minor",
+          "added": 601,
+          "augmented_files": 601,
+          "augmentation_leaks_flagged": 1,
+          "leak_example": "train/0/test_00525_hflip.png (train) is an augmentation of a test file"
+        },
+        "cas": {
+          "v1_objects_written": 70000,
+          "v2_objects_written": 600,
+          "v2_objects_reused": 70000
+        },
+        "sizes_bytes": {
+          "data_pngs": 19412262,
+          "manifest.json": 3687,
+          "index.jsonl.gz": 3950050
+        }
+      },
+      "checks": {
+        "files_match": true,
+        "class_counts_match": true,
+        "cross_split_duplicates_match": true,
+        "duplicate_files_match": true,
+        "tamper_detected": true,
+        "augmentation_leak_flagged": true
+      }
+    },
+    {
+      "dataset": "Fashion-MNIST",
+      "ground_truth": {
+        "train_images": 60000,
+        "test_images": 10000,
+        "train_duplicate_images": 0,
+        "test_duplicate_images": 0,
+        "test_images_also_in_train": 0,
+        "distinct_pixel_arrays_shared_by_train_and_test": 0,
+        "test_in_train_with_different_label": 0,
+        "label_counts": {
+          "train": {
+            "9": 6000,
+            "0": 6000,
+            "3": 6000,
+            "2": 6000,
+            "7": 6000,
+            "5": 6000,
+            "1": 6000,
+            "6": 6000,
+            "4": 6000,
+            "8": 6000
+          },
+          "test": {
+            "9": 1000,
+            "2": 1000,
+            "1": 1000,
+            "6": 1000,
+            "4": 1000,
+            "5": 1000,
+            "7": 1000,
+            "3": 1000,
+            "8": 1000,
+            "0": 1000
+          }
+        }
+      },
+      "timings_s": {
+        "export_pngs": 6.656,
+        "commit_cold": 21.454,
+        "commit_no_change": 6.973,
+        "verify_full": 3.613,
+        "verify_sample_5pct": 0.403,
+        "verify_quick": 2.576,
+        "verify_after_tamper": 3.864,
+        "commit_after_one_change": 7.794,
+        "commit_new_batch_601_files": 8.356,
+        "cas_snapshot_v1": 20.254,
+        "cas_snapshot_v2": 11.342
+      },
+      "mlfingerprint": {
+        "version": "fashion-v1.0.0",
+        "fingerprint": "sha256:e77fe4b56f0b249f039f657e19609250ad019e25b643a51c7a95582cb31d3aa8",
+        "total_files": 70000,
+        "splits": {
+          "train": 60000,
+          "test": 10000
+        },
+        "num_classes": 10,
+        "class_counts": {
+          "train": {
+            "ankle_boot": 6000,
+            "bag": 6000,
+            "coat": 6000,
+            "dress": 6000,
+            "pullover": 6000,
+            "sandal": 6000,
+            "shirt": 6000,
+            "sneaker": 6000,
+            "trouser": 6000,
+            "tshirt_top": 6000
+          },
+          "test": {
+            "ankle_boot": 1000,
+            "bag": 1000,
+            "coat": 1000,
+            "dress": 1000,
+            "pullover": 1000,
+            "sandal": 1000,
+            "shirt": 1000,
+            "sneaker": 1000,
+            "trouser": 1000,
+            "tshirt_top": 1000
+          }
+        },
+        "resolutions": {
+          "28x28": 70000
+        },
+        "quality_v1": {
+          "duplicate_files": 0,
+          "duplicates_across_splits": 0,
+          "augmented_files": 0,
+          "augmented_by_split": {},
+          "augmentation_cross_split": 0,
+          "augmented_in_eval": 0,
+          "parent_eval_leaks": 0,
+          "empty_files": 0,
+          "unreadable_files": 0,
+          "examples": {}
+        },
+        "duplicates_across_splits_v1": 0,
+        "duplicate_files_v1": 0,
+        "tamper": {
+          "detected": true,
+          "modified": [
+            "test/bag/test_02400.png"
+          ],
+          "recommit_version": "fashion-v1.0.1",
+          "bump": "patch"
+        },
+        "new_batch": {
+          "version": "fashion-v1.1.0",
+          "bump": "minor",
+          "added": 601,
+          "augmented_files": 601,
+          "augmentation_leaks_flagged": 1,
+          "leak_example": "train/ankle_boot/test_00470_hflip.png (train) is an augmentation of a test file"
+        },
+        "cas": {
+          "v1_objects_written": 70000,
+          "v2_objects_written": 600,
+          "v2_objects_reused": 70000
+        },
+        "sizes_bytes": {
+          "data_pngs": 35713756,
+          "manifest.json": 3891,
+          "index.jsonl.gz": 4011071
+        }
+      },
+      "checks": {
+        "files_match": true,
+        "class_counts_match": true,
+        "cross_split_duplicates_match": true,
+        "duplicate_files_match": true,
+        "tamper_detected": true,
+        "augmentation_leak_flagged": true
+      }
+    }
+  ]
+}

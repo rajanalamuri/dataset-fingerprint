@@ -3,6 +3,6 @@
   "description": "Manifest-based dataset versioning with leakage-aware splits, lineage and integrity verification for any modality on any storage.",
   "upload_type": "software",
   "creators": [{"name": "Alamuri, Raj"}],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": ["mlops", "dataset versioning", "data leakage", "reproducibility", "lineage"]
 }

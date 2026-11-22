@@ -9,7 +9,7 @@ type: software
 authors:
   - family-names: Alamuri
     given-names: Raj
-license: MIT
+license: Apache-2.0
 repository-code: "https://github.com/rajanalamuri/dataset-fingerprint"
 keywords:
   - mlops
@@ -18,4 +18,4 @@ keywords:
   - reproducibility
   - lineage
 version: 0.1.0
-date-released: "2026-11-22"
+date-released: "2026-11-23"

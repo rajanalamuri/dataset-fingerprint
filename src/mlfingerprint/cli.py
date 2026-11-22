@@ -79,12 +79,20 @@ def cmd_commit(a) -> int:
         augmentation=a.augmentation,
         content_checks=not a.no_content_checks,
         near_duplicates=False if a.near_dups is None else a.near_dups,
+        max_leak_rate=_rate(a.max_leak_rate),
         time_cutoffs=_kv(a.time_cutoff),
         row_split=_kv(a.row_split),
         extra=json.loads(a.extra) if a.extra else None,
     )
     print(json.dumps(v.manifest, indent=2) if a.json else v.summary())
     return 0
+
+
+def _rate(v):
+    if v is None:
+        return None
+    v = v.strip()
+    return float(v[:-1]) / 100 if v.endswith("%") else float(v)
 
 
 def cmd_log(a) -> int:
@@ -223,6 +231,7 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="T",
         help="flag re-encoded/resized copies of the same image across splits (dHash Hamming <= T, default 4; needs Pillow)",
     )
+    c.add_argument("--max-leak-rate", help="fail if more val/test files leak from train than this, e.g. 0.5%% or 0.005")
     c.add_argument("--extra", help="JSON object stored in the manifest")
     c.add_argument("--group-by", default="auto", help="auto (recording/sequence-safe) | file | parent | stem | regex - what stays in one split")
     c.add_argument("--modality", action="append", help="NAME=GLOB modality rule, e.g. radar='*/mmwave/**' (repeatable)")

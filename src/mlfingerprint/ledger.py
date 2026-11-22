@@ -203,11 +203,23 @@ def _leakage_checks(rows: List[Dict[str, Any]], parents: List["DatasetVersion"])
             return hit
         return stem_splits[base] if len(stem_dirs.get(base, ())) == 1 else None
 
+    real_at: Dict[tuple, List[Dict[str, Any]]] = defaultdict(list)
+    for r in real:
+        real_at[(_dir(r["key_rest"]), _stem(r["key_rest"]))].append(r)
+
     cross, eval_aug = [], []
+    aug_leaked: set = set()  # evaluation files that share content with train through augmentation
     for r in aug:
         o = original_splits(r)
         if o and r["split"] not in o:
             cross.append(f"{r['source_path']} ({r['split']}) is an augmentation of a {'/'.join(sorted(o))} file")
+            if r["split"] not in ("train", "shared") and "train" in o:
+                aug_leaked.add(r["source_path"])
+            elif r["split"] == "train":
+                origs = real_at.get((_dir(r["key_rest"]), r["aug_of"])) or (
+                    [x for x in real if _stem(x["key_rest"]) == r["aug_of"]] if len(stem_dirs.get(r["aug_of"], ())) == 1 else []
+                )
+                aug_leaked.update(x["source_path"] for x in origs if x["split"] not in ("train", "shared"))
         if r["split"] in ("val", "test"):
             eval_aug.append(r["source_path"])
     if cross:
@@ -275,7 +287,69 @@ def _leakage_checks(rows: List[Dict[str, Any]], parents: List["DatasetVersion"])
         warnings.append(f"{quality['empty_files']} empty file(s)")
     if quality["unreadable_files"]:
         warnings.append(f"{quality['unreadable_files']} file(s) could not be read by the probe (corrupt?)")
-    return {"warnings": warnings, "quality": quality, "augmentation_leaks": bool(cross or parent_leaks)}
+    return {"warnings": warnings, "quality": quality, "augmentation_leaks": bool(cross or parent_leaks), "aug_leaked": aug_leaked}
+
+
+CONFIRMED = ("exact_copy", "augmented_copy", "temporal_overlap")  # provable from bytes, names or time
+SUSPECTED = ("near_duplicate",)  # a perceptual-hash match: likely, not proven
+NEAR_DUP_UNINFORMATIVE = 0.10  # flagging more than this share of a split means the hash can't tell samples apart
+
+
+def _leak_metrics(rows: List[Dict[str, Any]], by_type: Dict[str, set], record_stats: Dict[str, tuple]) -> Dict[str, Any]:
+    """leak_rate = share of val/test files that provably share content (byte copy, augmentation of the same
+    file) or a time window with train. suspected_rate adds perceptual near-duplicates. Each file counts once."""
+    eval_files: Dict[str, List[str]] = defaultdict(list)
+    for r in rows:
+        if r["split"] not in ("train", "shared", "all") and not r.get("_annotation"):
+            eval_files[r["split"]].append(r["source_path"])
+    has_train = any(r["split"] == "train" and not r.get("_annotation") for r in rows)
+    out: Dict[str, Any] = {
+        "definition": "leak_rate: val/test files that are byte copies or augmentations of train files, or overlap "
+        "train in time / val+test files; suspected_rate also counts perceptual near-duplicates"
+    }
+    if not has_train or not eval_files:
+        out["leak_rate"] = None
+        out["note"] = "needs a train split and at least one evaluation split"
+        return out
+    total = leaked_total = suspected_total = 0
+    per: Dict[str, Any] = {}
+    uninformative = []
+    for sp, paths in sorted(eval_files.items()):
+        pset = set(paths)
+        hit = {t: by_type.get(t, set()) & pset for t in CONFIRMED + SUSPECTED}
+        leaked = set().union(*(hit[t] for t in CONFIRMED))
+        suspected = leaked.union(*(hit[t] for t in SUSPECTED))
+        per[sp] = {
+            "files": len(pset),
+            "leaked": len(leaked),
+            "leak_rate": round(len(leaked) / len(pset), 6),
+            "effective_size": len(pset) - len(leaked),
+            "by_type": {k: len(v) for k, v in hit.items() if v},
+        }
+        if "near_duplicate" in by_type:
+            per[sp]["suspected"] = len(suspected)
+            per[sp]["suspected_rate"] = round(len(suspected) / len(pset), 6)
+            if len(hit["near_duplicate"]) > NEAR_DUP_UNINFORMATIVE * len(pset):
+                uninformative.append(sp)
+        if sp in record_stats:
+            n, ov = record_stats[sp]
+            per[sp]["records"] = n
+            per[sp]["records_also_in_train"] = ov
+            per[sp]["record_leak_rate"] = round(ov / n, 6) if n else 0.0
+        total += len(pset)
+        leaked_total += len(leaked)
+        suspected_total += len(suspected)
+    out["leak_rate"] = round(leaked_total / total, 6)
+    out["leaked_files"] = leaked_total
+    out["evaluation_files"] = total
+    if "near_duplicate" in by_type:
+        out["suspected_rate"] = round(suspected_total / total, 6)
+        out["suspected_files"] = suspected_total
+        if uninformative:
+            out["near_duplicates_uninformative"] = uninformative
+    out["by_split"] = per
+    out["checked"] = sorted(t for t in CONFIRMED + SUSPECTED if t in by_type)
+    return out
 
 
 def _ledger_root_of(manifest_uri: str) -> str:
@@ -562,6 +636,12 @@ class DatasetVersion:
         for p in lin.get("parents") or []:
             lines.append("  parent      : " + (p.get("dataset_version") or json.dumps(p)))
         q = m.get("quality") or {}
+        lk = q.get("leakage") or {}
+        if lk.get("leak_rate") is not None:
+            parts = [f"{sp} {v['leaked']:,}/{v['files']:,} (effective {v['effective_size']:,})" for sp, v in lk.get("by_split", {}).items()]
+            lines.append(f"  leak rate   : {lk['leak_rate']:.2%}  " + "  ".join(parts))
+            if lk.get("suspected_rate") is not None:
+                lines.append(f"  suspected   : {lk['suspected_rate']:.2%} incl. near-duplicates")
         if q.get("augmented_files"):
             lines.append(
                 f"  augmented   : {q['augmented_files']:,} files  " + "  ".join(f"{k}={v}" for k, v in q.get("augmented_by_split", {}).items())
@@ -812,6 +892,7 @@ class Ledger:
         row_split: Optional[Dict[str, Any]] = None,
         content_checks: bool = True,
         near_duplicates: Union[bool, int] = False,
+        max_leak_rate: Optional[float] = None,
         dry_run: bool = False,
         quiet: bool = False,
     ) -> DatasetVersion:
@@ -847,6 +928,8 @@ class Ledger:
         near_duplicates: True (Hamming <= 4) or an int 0..10 - perceptual-hash every image and flag
                    re-encoded / resized / colour-shifted copies of the same picture in different splits
                    (needs Pillow). The 64-bit dHash is cached by sha256, so re-commits are cheap.
+        max_leak_rate: refuse to commit (FingerprintError) if more than this fraction of val/test files
+                   leak from train, e.g. 0.005 for 0.5%. The rate is always stored in manifest.quality.leakage.
         """
         if mode not in MODES:
             raise FingerprintError("mode must be " + " | ".join(MODES))
@@ -968,6 +1051,7 @@ class Ledger:
             ext = r["source_path"].rsplit(".", 1)[-1].lower()
             yolo = label_format == "yolo" and ext == "txt"
             if yolo:  # box coordinates are not "records": never line-hash them for contamination
+                r["_annotation"] = True  # a companion of an image, not a sample: not counted in the leak rate
                 yc = count_yolo_labels(src, r["source_path"])
                 if yc:
                     names = list(class_names or [])
@@ -1039,6 +1123,7 @@ class Ledger:
             raise FingerprintError("augmented copies leak across splits: " + "; ".join(checks["warnings"]))
 
         # record-level contamination (NLP / tabular): same normalised line in train and val/test
+        record_stats: Dict[str, tuple] = {}
         if content_checks:
             lines_by_split: Dict[str, set] = defaultdict(set)
             for r in rows:
@@ -1046,18 +1131,26 @@ class Ledger:
                     lines_by_split[r["split"]] |= r["_lines"]
             train_lines = lines_by_split.get("train", set())
             overlap = {sp: len(train_lines & v) for sp, v in lines_by_split.items() if sp != "train"}
+            if train_lines:
+                record_stats.update({sp: (len(v), overlap[sp]) for sp, v in lines_by_split.items() if sp != "train"})
             overlap = {k: v for k, v in overlap.items() if v}
             if overlap:
                 checks["quality"]["record_overlap_with_train"] = overlap
                 msg = ", ".join(f"{v} {k} record(s)" for k, v in overlap.items())
                 checks["warnings"].append(f"{msg} also appear in train (exact, normalised) - test contamination")
                 _log(f"mlfingerprint: WARNING {checks['warnings'][-1]}", quiet)
+        nd_leaked: set = set()
         if nd_threshold is not None:
             ph_rows = [r for r in rows if (r.get("meta") or {}).get("dhash")]
             pairs, hot = perceptual.cross_split_pairs([(r["split"], int(r["meta"]["dhash"], 16)) for r in ph_rows], nd_threshold)
             sha_of = [r["sha256"] for r in ph_rows]
             pairs = [p for p in pairs if sha_of[p[0]] != sha_of[p[1]]]  # byte-identical ones are already reported
             nd = perceptual.summarize([r["source_path"] for r in ph_rows], [r["split"] for r in ph_rows], pairs)
+            for i, j, _d in pairs:
+                a, b = ph_rows[i], ph_rows[j]
+                for x, y in ((a, b), (b, a)):
+                    if y["split"] == "train" and x["split"] not in ("train", "shared"):
+                        nd_leaked.add(x["source_path"])
             nd.update(threshold=nd_threshold, hashed=len(ph_rows), skipped_flat=hot)
             checks["quality"]["near_duplicates"] = nd
             if nd["with_train_match"]:
@@ -1073,7 +1166,51 @@ class Ledger:
                 )
                 _log(f"mlfingerprint: WARNING {checks['warnings'][-1]}", quiet)
 
-        index = [{k: v for k, v in r.items() if k not in ("_mtime", "_stamp", "key_rest", "_lines", "_t")} for r in rows]
+        # leak rate ---------------------------------------------------------------------
+        by_type: Dict[str, set] = {"augmented_copy": checks["aug_leaked"]}
+        train_sha = {r["sha256"] for r in rows if r["split"] == "train"}
+        by_type["exact_copy"] = {r["source_path"] for r in rows if r["split"] not in ("train", "shared") and r["sha256"] in train_sha}
+        if nd_threshold is not None:
+            by_type["near_duplicate"] = nd_leaked
+        # a recording/sequence folder name present in train and in val/test (only possible with given splits).
+        # Not counted in the rate: datasets often restart numbering per split, so a shared name is a hint, not proof.
+        rests = [r["key_rest"] for r in rows]
+        _seqs, _steps = sequence_dirs(rests), sequence_steps(rests)
+        rec_keys = [auto_group_key(r["key_rest"], _seqs, "label" in r, 0, 100, _steps) for r in rows]
+        rec_keys = [k if k.startswith(("rec:", "seq:")) else "" for k in rec_keys]
+        train_rec = {k for r, k in zip(rows, rec_keys) if k and r["split"] == "train"}
+        same_rec = sorted({k for r, k in zip(rows, rec_keys) if k and r["split"] not in ("train", "shared") and k in train_rec})
+        if temporal and strategy.get("time_ranges", {}).get("train"):
+            t_end = max(r["_t"] for r in rows if r["split"] == "train")
+            by_type["temporal_overlap"] = {r["source_path"] for r in rows if r["split"] not in ("train", "shared") and r["_t"] <= t_end}
+        leakage = _leak_metrics(rows, by_type, record_stats)
+        if same_rec:
+            leakage["recording_names_also_in_train"] = {"count": len(same_rec), "examples": [k[4:] for k in same_rec[:5]]}
+            checks["warnings"].append(
+                f"{len(same_rec)} recording/sequence name(s) appear in train and val/test, e.g. {same_rec[0][4:]} - same subject or session?"
+            )
+            _log(f"mlfingerprint: WARNING {checks['warnings'][-1]}", quiet)
+        checks["quality"]["leakage"] = leakage
+        if leakage.get("near_duplicates_uninformative"):
+            checks["warnings"].append(
+                f"near-duplicate hash matches >{NEAR_DUP_UNINFORMATIVE:.0%} of {', '.join(leakage['near_duplicates_uninformative'])} - "
+                "the 64-bit hash cannot tell these images apart (small, centred, low-detail images); "
+                "treat near-duplicate counts here as noise and use embeddings instead"
+            )
+            _log(f"mlfingerprint: WARNING {checks['warnings'][-1]}", quiet)
+        if leakage.get("leak_rate"):
+            _log(
+                f"mlfingerprint: leak rate {leakage['leak_rate']:.2%} ({leakage['leaked_files']:,} of "
+                f"{leakage['evaluation_files']:,} val/test files share content or a recording with train)",
+                quiet,
+            )
+        if max_leak_rate is not None and (leakage.get("leak_rate") or 0) > max_leak_rate:
+            raise FingerprintError(
+                f"leak rate {leakage['leak_rate']:.2%} exceeds max_leak_rate {max_leak_rate:.2%}: "
+                + json.dumps({k: v["by_type"] for k, v in leakage["by_split"].items()})
+            )
+
+        index = [{k: v for k, v in r.items() if k not in ("_mtime", "_stamp", "key_rest", "_lines", "_t", "_annotation")} for r in rows]
         index.sort(key=lambda r: (r["split"], r["path"]))
 
         # 5. lineage + version number ------------------------------------------------

@@ -21,8 +21,10 @@ manifest should also refuse, or loudly flag, leaky splits. We present \textsc{ml
 open-source library that versions datasets of any modality on any object store as a manifest of
 content hashes, and at commit time keeps recordings and frame sequences together, detects
 augmented copies, exact and near-duplicate files, repeated text records, temporal overlap and
-leaks from a parent dataset's evaluation split. On MNIST, Fashion-MNIST and the 122k-file COCO 2017
-annotation set every reported count matches independently computed ground truth; a full commit
+leaks from a parent dataset's evaluation split, and reports a \emph{leak rate}: the share of
+evaluation files provably shared with training. On MNIST, Fashion-MNIST and the 122k-file COCO 2017
+annotation set every reported count matches independently computed ground truth, and 100 planted
+leaks are recovered exactly; a full commit
 costs 23--35\,s on two vCPUs and an unchanged re-commit 7--23\,s. Its 64-bit perceptual check,
 run on CIFAR-10, flags 91 test images with a near-duplicate in the training set; 63 are in the
 ciFAIR list, and our review finds 24 of the remaining 28 are also duplicates that ciFAIR-10 still
@@ -102,6 +104,14 @@ $T$, each hash is cut into $T{+}1$ disjoint chunks; by the pigeonhole principle,
 distance $T$ agree on at least one chunk, so only items sharing a chunk value are compared. The
 search is exact, a simple case of multi-index hashing \cite{norouzi2012mih}.
 
+\textbf{Leak rate.} Rather than a weighted risk score, each commit reports a count: the
+\emph{leak rate} is the share of val/test files that are byte copies of a training file, augmentations
+of the same file (in either direction) or overlap the training period, and the \emph{effective test
+size} is what remains once they are removed. Every leaked file is listed with its reason, so the
+number can be audited. Perceptual matches are reported separately as a \emph{suspected rate}, since a
+hash match is evidence, not proof. Text and tables also get a record-level rate. A threshold
+(\texttt{max\_leak\_rate}) turns the rate into a CI gate.
+
 \textbf{Storage and safety.} Storage goes through \texttt{fsspec}; integration tests run against S3,
 Azure and GCS emulators. Paths in an index are validated before checkout, a tampered index is refused,
 credentials are never written to manifests, and loaders never unpickle data.
@@ -132,6 +142,12 @@ Re-commit, nothing changed & 8.1\,s & 23.4\,s \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\textbf{Leak rate.} MNIST, Fashion-MNIST and CIFAR-10 have a leak rate of 0.00\% at the byte
+level. To check the rate itself we planted 100 leaks in each of MNIST and Fashion-MNIST: 50 test
+images copied into train under new names and 50 flipped test images saved as
+\texttt{<name>\_hflip.png}. Both commits reported exactly 1.00\% (100/10,000), split 50/50 by type,
+with an effective test size of 9,900.
 
 \textbf{A heuristic that broke.} On coco128, the first version read COCO's sparse numeric image
 ids as video frames and grouped unrelated photos into blocks, skewing a hash split to 201/17/40.
@@ -175,7 +191,11 @@ against ciFAIR is only 22\%: a 64-bit hash of a $32{\times}32$ thumbnail misses 
 re-shoots that CNN features catch, and raising $T$ trades precision away quickly. The check adds 28\,s to
 a cold commit of 60,000 images (7.5\,s to 35.8\,s) and 3\,s to a warm one, since hashes are cached by
 content. We see it as a guard that runs on every commit, not a replacement for an embedding search
-when a benchmark is built.
+when a benchmark is built. It also fails outright on some data: on MNIST and Fashion-MNIST, where every
+image is a small centred object on a flat background, the same threshold matches 47--57\% of test
+images to some training image. The commit detects this (more than 10\% of a split matched) and labels
+the near-duplicate count uninformative instead of reporting it as leakage; the confirmed leak rate
+is unaffected.
 
 \section{Related Work}
 \textbf{Leakage.} Kaufman et al.\ formalised leakage in data mining \cite{kaufman2012leakage}, and

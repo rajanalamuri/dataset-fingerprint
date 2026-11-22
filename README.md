@@ -96,6 +96,26 @@ Sensor folders set the modality even for generic files (`radar_front/0001.bin` �
 
 Warnings are logged and stored in `manifest.quality` and `manifest.lineage.warnings`. Set `augmentation="error"` to fail CI on augmentation leaks.
 
+### Leak rate and effective test size
+
+Every commit reports one number you can check by hand:
+
+```
+leak rate   : 1.00%  test 100/10,000 (effective 9,900)
+suspected   : 1.00% incl. near-duplicates
+```
+
+**Leak rate** = val/test files that are byte copies of a train file, augmentations of the same file, or overlap train
+in time ÷ all val/test files. Each leaked file is listed in the manifest (`quality.leakage`), by split and by reason.
+**Effective size** is the test set left once they are removed. **Suspected rate** adds perceptual near-duplicates,
+which are likely but not proven. Text and tables also get a record-level rate (rows/sentences also in train).
+
+Fail CI above a threshold:
+
+```bash
+fingerprint commit ./data --near-dups --max-leak-rate 0.5%
+```
+
 ## Data added, derived and augmented
 
 ```python
@@ -206,6 +226,11 @@ of mlfingerprint. Full report and how to reproduce it: [benchmarks/RESULTS.md](b
 | Flags that are real train/test leaks | 87 / 91 (96 %) |
 | Recall of ciFAIR's 286 (CNN + manual review) | 22 % at ≤ 4 · 54 % at ≤ 8 |
 | Commit of 60,000 PNGs without / with the check / warm re-commit | 7.5 s / 35.8 s / 10.6 s |
+
+| Leak rate | MNIST | Fashion | CIFAR-10 |
+|---|---:|---:|---:|
+| As published (confirmed) | 0.00 % | 0.00 % | 0.00 % (0.91 % suspected, 0.87 % confirmed by eye) |
+| With 100 planted leaks (50 copies, 50 flips) | 1.00 % ✅ | 1.00 % ✅ | |
 
 ## Quality
 

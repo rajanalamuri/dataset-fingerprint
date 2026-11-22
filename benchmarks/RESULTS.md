@@ -200,3 +200,28 @@ so it can be checked.
 
 Data: CIFAR-10 binary batches (sha256 pinned in `run_cifar.py`); the test batch was cross-checked against ciFAIR-10.
 Reproduce: `bash benchmarks/download_cifar.sh .bench/cifar10 && python benchmarks/run_cifar.py --root .bench/cifar10 --work .bench/cifar-work`.
+
+# Leak rate and effective test size
+
+**Leak rate** = val/test files that are byte copies of a train file, augmentations of the same file (either
+direction), or overlap train in time, divided by all val/test files. Every leaked file is listed, so the rate is a
+count anyone can check, not a weighted score. **Effective size** is what is left once leaked files are removed.
+**Suspected rate** adds perceptual near-duplicates (likely, not proven).
+
+| Dataset | Val/test files | Leak rate | Why | Effective size | Suspected (incl. near-dups) |
+|---|---:|---:|---|---:|---:|
+| MNIST (as published) | 10,000 | **0.00%** | - | 10,000 | 46.78% ⚠ hash uninformative |
+| MNIST + 100 planted leaks (50 copies, 50 flips) | 10,000 | **1.00%** | exact copy 50, augmented copy 50 | 9,900 | - |
+| Fashion-MNIST (as published) | 10,000 | **0.00%** | - | 10,000 | 57.07% ⚠ hash uninformative |
+| Fashion-MNIST + 100 planted leaks (50 copies, 50 flips) | 10,000 | **1.00%** | exact copy 50, augmented copy 50 | 9,900 | - |
+| CIFAR-10 (as published) | 10,000 | **0.00%** | - | 10,000 | 0.91% |
+| coco128 (hash split 80/10/10) | 32 | **0.00%** | - | 32 | 0.00% |
+
+- **Planted leaks are recovered exactly.** 50 test images copied into train under new names and 50 flipped test images
+  saved as `<name>_hflip.png` give 100 / 10,000 = **1.00 %**, split 50 / 50 by type, on both datasets.
+- **CIFAR-10**: no byte-level leaks, 0.91 % suspected. Visual review confirmed 87 of those 91 (see the CIFAR section),
+  i.e. at least 0.87 % of the test set, and ciFAIR's own list puts it at 2.86 %.
+- **MNIST / Fashion-MNIST: the perceptual hash is useless here.** A 64-bit hash of a small, centred grayscale object
+  on a flat background matches 47–57 % of test images to *some* training image. The commit now says so
+  (`near_duplicates_uninformative`) instead of reporting a fake leak; the confirmed rate is unaffected.
+- `max_leak_rate=0.005` (CLI `--max-leak-rate 0.5%`) makes the commit fail above 0.5 %, for CI.

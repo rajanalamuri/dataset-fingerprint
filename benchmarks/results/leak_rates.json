@@ -1,0 +1,353 @@
+{
+  "results": [
+    {
+      "dataset": "MNIST (as published)",
+      "leak_rate": 0.0,
+      "leaked_files": 0,
+      "evaluation_files": 10000,
+      "suspected_rate": 0.4678,
+      "suspected_files": 4678,
+      "near_duplicates_uninformative": [
+        "test"
+      ],
+      "by_split": {
+        "test": {
+          "files": 10000,
+          "leaked": 0,
+          "leak_rate": 0.0,
+          "effective_size": 10000,
+          "by_type": {
+            "near_duplicate": 4678
+          },
+          "suspected": 4678,
+          "suspected_rate": 0.4678
+        }
+      },
+      "recording_names_also_in_train": null,
+      "near_duplicate_examples": [
+        [
+          "test/0/test_00071.png",
+          "train/0/train_25304.png",
+          0
+        ],
+        [
+          "test/0/test_00704.png",
+          "train/0/train_13497.png",
+          0
+        ],
+        [
+          "test/0/test_01188.png",
+          "train/0/train_52821.png",
+          0
+        ],
+        [
+          "test/0/test_02081.png",
+          "train/0/train_26323.png",
+          0
+        ],
+        [
+          "test/0/test_02385.png",
+          "train/0/train_13211.png",
+          0
+        ],
+        [
+          "test/0/test_02619.png",
+          "train/0/train_49065.png",
+          0
+        ],
+        [
+          "test/0/test_03271.png",
+          "train/0/train_36022.png",
+          0
+        ],
+        [
+          "test/0/test_04157.png",
+          "train/0/train_36617.png",
+          0
+        ],
+        [
+          "test/0/test_04650.png",
+          "train/0/train_00283.png",
+          0
+        ],
+        [
+          "test/0/test_04650.png",
+          "train/0/train_00429.png",
+          0
+        ]
+      ],
+      "commit_seconds": 64.6,
+      "options": {
+        "exclude": [
+          "*_hflip*"
+        ],
+        "near_duplicates": 4
+      }
+    },
+    {
+      "dataset": "MNIST + 100 planted leaks (50 copies, 50 flips)",
+      "leak_rate": 0.01,
+      "leaked_files": 100,
+      "evaluation_files": 10000,
+      "suspected_rate": null,
+      "suspected_files": null,
+      "near_duplicates_uninformative": null,
+      "by_split": {
+        "test": {
+          "files": 10000,
+          "leaked": 100,
+          "leak_rate": 0.01,
+          "effective_size": 9900,
+          "by_type": {
+            "exact_copy": 50,
+            "augmented_copy": 50
+          }
+        }
+      },
+      "recording_names_also_in_train": null,
+      "near_duplicate_examples": [],
+      "commit_seconds": 15.9,
+      "options": {},
+      "planted": {
+        "exact_copy": 50,
+        "augmented_copy": 50,
+        "true_leak_rate": 0.01
+      }
+    },
+    {
+      "dataset": "Fashion-MNIST (as published)",
+      "leak_rate": 0.0,
+      "leaked_files": 0,
+      "evaluation_files": 10000,
+      "suspected_rate": 0.5707,
+      "suspected_files": 5707,
+      "near_duplicates_uninformative": [
+        "test"
+      ],
+      "by_split": {
+        "test": {
+          "files": 10000,
+          "leaked": 0,
+          "leak_rate": 0.0,
+          "effective_size": 10000,
+          "by_type": {
+            "near_duplicate": 5707
+          },
+          "suspected": 5707,
+          "suspected_rate": 0.5707
+        }
+      },
+      "recording_names_also_in_train": null,
+      "near_duplicate_examples": [
+        [
+          "test/ankle_boot/test_02316.png",
+          "train/ankle_boot/train_44105.png",
+          0
+        ],
+        [
+          "test/ankle_boot/test_05765.png",
+          "train/ankle_boot/train_57105.png",
+          0
+        ],
+        [
+          "test/ankle_boot/test_08367.png",
+          "train/ankle_boot/train_41133.png",
+          0
+        ],
+        [
+          "test/coat/test_00057.png",
+          "train/coat/train_46222.png",
+          0
+        ],
+        [
+          "test/coat/test_00188.png",
+          "train/coat/train_10660.png",
+          0
+        ],
+        [
+          "test/coat/test_00188.png",
+          "train/coat/train_20338.png",
+          0
+        ],
+        [
+          "test/coat/test_00188.png",
+          "train/coat/train_35517.png",
+          0
+        ],
+        [
+          "test/coat/test_00188.png",
+          "train/coat/train_37825.png",
+          0
+        ],
+        [
+          "test/coat/test_00188.png",
+          "train/coat/train_38070.png",
+          0
+        ],
+        [
+          "test/coat/test_00188.png",
+          "train/coat/train_38287.png",
+          0
+        ]
+      ],
+      "commit_seconds": 66.4,
+      "options": {
+        "exclude": [
+          "*_hflip*"
+        ],
+        "near_duplicates": 4
+      }
+    },
+    {
+      "dataset": "Fashion-MNIST + 100 planted leaks (50 copies, 50 flips)",
+      "leak_rate": 0.01,
+      "leaked_files": 100,
+      "evaluation_files": 10000,
+      "suspected_rate": null,
+      "suspected_files": null,
+      "near_duplicates_uninformative": null,
+      "by_split": {
+        "test": {
+          "files": 10000,
+          "leaked": 100,
+          "leak_rate": 0.01,
+          "effective_size": 9900,
+          "by_type": {
+            "exact_copy": 50,
+            "augmented_copy": 50
+          }
+        }
+      },
+      "recording_names_also_in_train": null,
+      "near_duplicate_examples": [],
+      "commit_seconds": 15.8,
+      "options": {},
+      "planted": {
+        "exact_copy": 50,
+        "augmented_copy": 50,
+        "true_leak_rate": 0.01
+      }
+    },
+    {
+      "dataset": "CIFAR-10 (as published)",
+      "leak_rate": 0.0,
+      "leaked_files": 0,
+      "evaluation_files": 10000,
+      "suspected_rate": 0.0091,
+      "suspected_files": 91,
+      "near_duplicates_uninformative": null,
+      "by_split": {
+        "test": {
+          "files": 10000,
+          "leaked": 0,
+          "leak_rate": 0.0,
+          "effective_size": 10000,
+          "by_type": {
+            "near_duplicate": 91
+          },
+          "suspected": 91,
+          "suspected_rate": 0.0091
+        }
+      },
+      "recording_names_also_in_train": null,
+      "near_duplicate_examples": [
+        [
+          "test/frog/01513.png",
+          "train/frog/06451.png",
+          0
+        ],
+        [
+          "test/automobile/03565.png",
+          "train/automobile/24220.png",
+          1
+        ],
+        [
+          "test/bird/06880.png",
+          "train/bird/35230.png",
+          1
+        ],
+        [
+          "test/cat/00673.png",
+          "train/cat/34116.png",
+          1
+        ],
+        [
+          "test/cat/06893.png",
+          "train/cat/37546.png",
+          1
+        ],
+        [
+          "test/cat/09141.png",
+          "train/cat/06167.png",
+          1
+        ],
+        [
+          "test/deer/05026.png",
+          "train/deer/28769.png",
+          1
+        ],
+        [
+          "test/deer/07264.png",
+          "train/deer/01148.png",
+          1
+        ],
+        [
+          "test/dog/02057.png",
+          "train/dog/24687.png",
+          1
+        ],
+        [
+          "test/dog/06528.png",
+          "train/dog/07679.png",
+          1
+        ]
+      ],
+      "commit_seconds": 40.5,
+      "options": {
+        "near_duplicates": 4
+      }
+    },
+    {
+      "dataset": "coco128 (hash split 80/10/10)",
+      "leak_rate": 0.0,
+      "leaked_files": 0,
+      "evaluation_files": 32,
+      "suspected_rate": 0.0,
+      "suspected_files": 0,
+      "near_duplicates_uninformative": null,
+      "by_split": {
+        "test": {
+          "files": 13,
+          "leaked": 0,
+          "leak_rate": 0.0,
+          "effective_size": 13,
+          "by_type": {},
+          "suspected": 0,
+          "suspected_rate": 0.0
+        },
+        "val": {
+          "files": 19,
+          "leaked": 0,
+          "leak_rate": 0.0,
+          "effective_size": 19,
+          "by_type": {},
+          "suspected": 0,
+          "suspected_rate": 0.0
+        }
+      },
+      "recording_names_also_in_train": null,
+      "near_duplicate_examples": [],
+      "commit_seconds": 0.2,
+      "options": {
+        "split": "0.8,0.1,0.1",
+        "label_format": "yolo",
+        "near_duplicates": 4
+      }
+    }
+  ],
+  "env": {
+    "python": "3.13.18",
+    "cpus": 2,
+    "mlfingerprint": "0.1.0"
+  }
+}

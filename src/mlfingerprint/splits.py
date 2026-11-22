@@ -111,23 +111,54 @@ def _stem(name: str) -> str:
     return name.split(".", 1)[0]
 
 
-def sequence_dirs(paths: List[str], min_frames: int = 3) -> Dict[str, int]:
-    """Directories that look like frame sequences: >= min_frames files whose names end in
-    a number (frame_000123.png, 1715000000123.bin). Returns {dir: n_frames}."""
-    counts: Dict[str, int] = {}
+def _sequence_stats(paths: List[str], min_frames: int = 3) -> Dict[str, Tuple[int, int]]:
+    """{dir: (n_frames, step)} for directories whose numbered files look like a *sequence*:
+    densely numbered (frame_000001, 000002, ...) or regularly spaced (epoch-ms timestamps at a
+    fixed rate). Sparse, irregular IDs - COCO's 000000000009.jpg, 000000000025.jpg, ImageNet
+    ids - are independent samples, not frames, and are left alone."""
+    nums: Dict[str, List[int]] = {}
     for p in paths:
         d, name = posixpath.split(p)
-        if _NUM_TAIL.match(_stem(name)):
-            counts[d] = counts.get(d, 0) + 1
-    return {d: n for d, n in counts.items() if n >= min_frames}
+        m = _NUM_TAIL.match(_stem(name))
+        if m:
+            nums.setdefault(d, []).append(int(m.group(2)))
+    out: Dict[str, Tuple[int, int]] = {}
+    for d, xs in nums.items():
+        u = sorted(set(xs))
+        if len(xs) < min_frames or len(u) < 2:
+            continue
+        gaps = [b - a for a, b in zip(u, u[1:])]
+        mean = sum(gaps) / len(gaps)
+        cv = (sum((g - mean) ** 2 for g in gaps) / len(gaps)) ** 0.5 / mean if mean else 0.0
+        dense = (u[-1] - u[0] + 1) / len(u) <= 1.5
+        if dense or cv < 0.5:
+            out[d] = (len(xs), 1 if dense else max(1, sorted(gaps)[len(gaps) // 2]))
+    return out
 
 
-def _block(stem: str, size: int = FRAME_BLOCK) -> str:
+def sequence_dirs(paths: List[str], min_frames: int = 3) -> Dict[str, int]:
+    """Directories that look like frame sequences. Returns {dir: n_frames}."""
+    return {d: n for d, (n, _) in _sequence_stats(paths, min_frames).items()}
+
+
+def sequence_steps(paths: List[str], min_frames: int = 3) -> Dict[str, int]:
+    """Numbering step per sequence directory (1 for frame counters, e.g. 100 for 10 Hz epoch-ms)."""
+    return {d: step for d, (_, step) in _sequence_stats(paths, min_frames).items()}
+
+
+def _block(stem: str, size: int = FRAME_BLOCK, step: int = 1) -> str:
     m = _NUM_TAIL.match(stem)
-    return f"{m.group(1)}#{int(m.group(2)) // size}" if m else stem
+    return f"{m.group(1)}#{int(m.group(2)) // (size * max(1, step))}" if m else stem
 
 
-def auto_group_key(rest: str, seq_dirs: Dict[str, int], labeled: bool, level: int = 0, block: int = FRAME_BLOCK) -> str:
+def auto_group_key(
+    rest: str,
+    seq_dirs: Dict[str, int],
+    labeled: bool,
+    level: int = 0,
+    block: int = FRAME_BLOCK,
+    steps: Optional[Dict[str, int]] = None,
+) -> str:
     """Group so that nothing correlated is split apart:
 
     level 0  session/recording: everything before the first sensor folder
@@ -152,12 +183,12 @@ def auto_group_key(rest: str, seq_dirs: Dict[str, int], labeled: bool, level: in
         scope = "/".join(x for x in (prefix, after) if x)
         if after:
             return "seq:" + scope
-        return "blk:" + (scope + "/" if scope else "") + _block(stem, block)
+        return "blk:" + (scope + "/" if scope else "") + _block(stem, block, (steps or {}).get("/".join(dirs), 1))
     parent = "/".join(dirs)
     if not labeled and parent in seq_dirs:
         if level == 0:
             return "seq:" + parent
-        return "blk:" + parent + "/" + _block(stem, block)
+        return "blk:" + parent + "/" + _block(stem, block, (steps or {}).get(parent, 1))
     return "file:" + (parent + "/" if parent else "") + stem
 
 

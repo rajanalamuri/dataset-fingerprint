@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import json
 import sys
 from typing import List, Optional
@@ -38,6 +39,16 @@ def _kv(specs):
     return out or None
 
 
+def _names(spec):
+    """'person,bicycle,...' or a path to a file with one class name per line."""
+    if not spec:
+        return None
+    if os.path.isfile(spec):
+        with open(spec, encoding="utf-8") as f:
+            return [x.strip() for x in f if x.strip()]
+    return [x.strip() for x in spec.split(",")]
+
+
 def cmd_commit(a) -> int:
     lg = _ledger(a)
     v = lg.commit(
@@ -54,6 +65,8 @@ def cmd_commit(a) -> int:
         modality_rules=_rules(a.modality),
         label_from=a.label_from,
         label_column=a.label_column,
+        label_format=a.label_format,
+        class_names=_names(a.class_names),
         probe=a.probe,
         include=a.include,
         exclude=a.exclude,
@@ -206,6 +219,8 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--seed", default="mlfingerprint")
     c.add_argument("--label-from", default="auto", choices=["auto", "parent", "none"])
     c.add_argument("--label-column", help="label column inside csv/tsv/jsonl files")
+    c.add_argument("--label-format", choices=["yolo"], help="count objects per class in YOLO .txt label files")
+    c.add_argument("--class-names", help="class names for --label-format: comma list or a file with one per line")
     c.add_argument("--probe", action="store_true", help="read durations, resolutions, record counts")
     c.add_argument("--include", action="append", help="glob, repeatable")
     c.add_argument("--exclude", action="append", help="glob, repeatable")

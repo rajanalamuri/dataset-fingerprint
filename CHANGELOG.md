@@ -23,6 +23,10 @@ _Unreleased._
 - `record_training()` across multiple datasets with recipe + seed; PyTorch, MLflow and feature-store helpers.
 - CLI: commit, log, show, diff, verify (--sample, --quick), files, lock, tag, tags, lineage, checkout.
 
+**Detection datasets**
+- `label_format="yolo"` (+ `class_names`, CLI `--label-format yolo --class-names`) counts objects per class in YOLO label files; box coordinates are never treated as text records.
+- Frame-sequence detection requires dense or regularly spaced numbering, so sparse ids (COCO, ImageNet) are no longer grouped as video frames. Fixed-rate timestamp names use their real step for frame blocks.
+
 **Security & quality**
 - Path validation for every metadata-supplied path (no absolute paths, `..`, drive letters, NUL); `checkout` refuses an index that doesn't match the manifest; `verify` reports unsafe paths.
 - Symlinks that resolve outside the source are never read; hash cache keyed on mtime + ctime + inode (ETag remotely).

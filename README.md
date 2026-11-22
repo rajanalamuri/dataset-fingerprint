@@ -71,7 +71,7 @@ No server, no database, no account. A version is a folder of small files next to
 | Task | Layout it understands | What it guarantees |
 |---|---|---|
 | **Classification** | `train/cat/1.jpg`, `0/…9/` | labels + class balance per split |
-| **Detection / segmentation** | `images/x.jpg` + `labels/x.txt` / `masks/x.png`; COCO `instances_train2017.json`, `train2017/` | image and annotation always in the same split |
+| **Detection / segmentation** | `images/x.jpg` + `labels/x.txt` / `masks/x.png`; COCO `instances_train2017.json`, `train2017/` | image and annotation always in the same split; `label_format="yolo"` reports objects per class per split |
 | **Video / frames** | `seq_014/frame_000123.png` (video divided at a fixed fps) | a sequence never straddles splits; frame counts per sequence |
 | **Multi-sensor** (AV, robotics, wearables) | `drive_03/{camera,radar,imu,lidar,gnss,can,mic}/…` | a recording stays in one split; sensors stay time-synced |
 | **Audio / speech** | `speaker_07/utt_3.wav`, `train/…` | duration, sample rate; `group_by="parent"` keeps a speaker in one split |
@@ -180,8 +180,9 @@ Upstream of a feature store, alongside your experiment tracker. If you outgrow i
 
 ## Benchmarks
 
-Run on **MNIST** and **Fashion-MNIST** (70,000 images each), with every number cross-checked against ground truth
-computed independently from the raw pixels. Full report and how to reproduce it: [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+Run on **MNIST**, **Fashion-MNIST** (70,000 images each) and the full **COCO 2017** annotation set (122,224 files,
+886,282 objects) plus real COCO images. Every number is cross-checked against ground truth computed independently
+of mlfingerprint. Full report and how to reproduce it: [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
 | 70,000 files, 2 vCPUs | MNIST | Fashion-MNIST |
 |---|---:|---:|
@@ -190,6 +191,13 @@ computed independently from the raw pixels. Full report and how to reproduce it:
 | `verify` full re-hash / 5 % sample | 4.0 s / 0.17 s | 3.6 s / 0.40 s |
 | One-pixel edit caught · augmentation leak flagged | ✅ · ✅ | ✅ · ✅ |
 | Exact train/test duplicates found (= ground truth) | 0 | 0 |
+
+| COCO 2017 annotations, 122,224 files | |
+|---|---:|
+| First commit (hash + count 886k objects by class) / re-commit, no change | 35.1 s / 23.4 s |
+| `verify` full / 5 % sample | 9.9 s / 0.88 s |
+| Val objects vs official `instances_val2017.json` (non-crowd) | 36,335 = 36,335 ✅ |
+| Edited box caught · copied val label in train flagged · image+label pairs kept together | ✅ · ✅ · ✅ |
 
 ## Quality
 

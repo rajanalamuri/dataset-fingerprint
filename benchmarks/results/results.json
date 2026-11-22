@@ -44,17 +44,17 @@
         }
       },
       "timings_s": {
-        "export_pngs": 6.746,
-        "commit_cold": 19.801,
-        "commit_no_change": 7.098,
-        "verify_full": 3.997,
-        "verify_sample_5pct": 0.17,
-        "verify_quick": 2.416,
-        "verify_after_tamper": 3.213,
-        "commit_after_one_change": 7.593,
-        "commit_new_batch_601_files": 8.54,
-        "cas_snapshot_v1": 24.624,
-        "cas_snapshot_v2": 10.835
+        "export_pngs": 14.75,
+        "commit_cold": 23.338,
+        "commit_no_change": 8.054,
+        "verify_full": 5.651,
+        "verify_sample_5pct": 0.244,
+        "verify_quick": 2.376,
+        "verify_after_tamper": 4.677,
+        "commit_after_one_change": 9.404,
+        "commit_new_batch_601_files": 9.427,
+        "cas_snapshot_v1": 28.033,
+        "cas_snapshot_v2": 13.02
       },
       "mlfingerprint": {
         "version": "mnist-v1.0.0",
@@ -131,7 +131,7 @@
         },
         "sizes_bytes": {
           "data_pngs": 19412262,
-          "manifest.json": 3687,
+          "manifest.json": 3532,
           "index.jsonl.gz": 3950050
         }
       },
@@ -182,17 +182,17 @@
         }
       },
       "timings_s": {
-        "export_pngs": 6.656,
-        "commit_cold": 21.454,
-        "commit_no_change": 6.973,
-        "verify_full": 3.613,
-        "verify_sample_5pct": 0.403,
-        "verify_quick": 2.576,
-        "verify_after_tamper": 3.864,
-        "commit_after_one_change": 7.794,
-        "commit_new_batch_601_files": 8.356,
-        "cas_snapshot_v1": 20.254,
-        "cas_snapshot_v2": 11.342
+        "export_pngs": 13.152,
+        "commit_cold": 22.879,
+        "commit_no_change": 7.159,
+        "verify_full": 5.503,
+        "verify_sample_5pct": 0.378,
+        "verify_quick": 2.748,
+        "verify_after_tamper": 4.816,
+        "commit_after_one_change": 8.621,
+        "commit_new_batch_601_files": 10.128,
+        "cas_snapshot_v1": 25.521,
+        "cas_snapshot_v2": 12.518
       },
       "mlfingerprint": {
         "version": "fashion-v1.0.0",
@@ -269,7 +269,7 @@
         },
         "sizes_bytes": {
           "data_pngs": 35713756,
-          "manifest.json": 3891,
+          "manifest.json": 3735,
           "index.jsonl.gz": 4011071
         }
       },

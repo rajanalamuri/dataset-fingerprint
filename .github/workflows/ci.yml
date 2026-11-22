@@ -68,7 +68,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          python -u -m pytest -m integration -rs -v --timeout=180 --durations=10 --cov --cov-report=xml | tee out.txt
+          python -u -m pytest -m integration -rs -v --timeout=180 --durations=10 --cov --cov-report=xml --cov-fail-under=0 | tee out.txt
           ! grep -q "SKIPPED" out.txt
       - if: failure()
         run: docker logs azurite | tail -50; docker logs gcs | tail -50

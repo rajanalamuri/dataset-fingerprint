@@ -1,0 +1,74 @@
+# Release = push a tag like v0.1.0.  Flow:
+#   full CI + security  ->  build once  ->  provenance attestation  ->  TestPyPI  ->  PyPI (manual approval)  ->  GitHub Release
+# No API tokens anywhere: PyPI/TestPyPI use Trusted Publishing (OIDC). See PUBLISHING.md for the one-time setup.
+name: release
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:        # dry run: builds + publishes to TestPyPI only
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+  security:
+    uses: ./.github/workflows/security.yml
+    permissions: {contents: read, security-events: write}
+
+  build:
+    needs: [ci, security]
+    runs-on: ubuntu-latest
+    permissions: {contents: read, id-token: write, attestations: write}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: Tag must match the package version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          V=$(python -c "import re;print(re.search(r'__version__ = \"(.+?)\"', open('src/mlfingerprint/__init__.py').read()).group(1))")
+          test "v$V" = "${GITHUB_REF_NAME}" || { echo "tag ${GITHUB_REF_NAME} != v$V"; exit 1; }
+          grep -q "## $V" CHANGELOG.md || { echo "CHANGELOG.md has no entry for $V"; exit 1; }
+      - run: pip install build twine && python -m build && twine check --strict dist/*
+      - uses: actions/attest-build-provenance@v2
+        with: {subject-path: "dist/*"}
+      - uses: actions/upload-artifact@v4
+        with: {name: dist, path: dist/}
+
+  testpypi:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: {name: testpypi, url: "https://test.pypi.org/p/mlfingerprint"}
+    permissions: {id-token: write}
+    steps:
+      - uses: actions/download-artifact@v4
+        with: {name: dist, path: dist/}
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with: {repository-url: "https://test.pypi.org/legacy/", skip-existing: true}
+
+  pypi:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: testpypi
+    runs-on: ubuntu-latest
+    environment: {name: pypi, url: "https://pypi.org/p/mlfingerprint"}   # add yourself as required reviewer
+    permissions: {id-token: write}
+    steps:
+      - uses: actions/download-artifact@v4
+        with: {name: dist, path: dist/}
+      - uses: pypa/gh-action-pypi-publish@release/v1   # also uploads PEP 740 attestations
+
+  github-release:
+    needs: pypi
+    runs-on: ubuntu-latest
+    permissions: {contents: write}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {name: dist, path: dist/}
+      - name: Notes from CHANGELOG
+        run: |
+          V=${GITHUB_REF_NAME#v}
+          awk -v v="## $V" '$0 ~ "^"v {f=1; next} /^## / && f {exit} f' CHANGELOG.md > notes.md
+      - uses: softprops/action-gh-release@v2
+        with: {files: "dist/*", body_path: notes.md}

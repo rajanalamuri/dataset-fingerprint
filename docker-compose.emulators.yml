@@ -1,0 +1,10 @@
+# Local cloud emulators for `make integration` (S3 runs in-process via moto).
+services:
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck --loose
+    ports: ["10000:10000"]
+  gcs:
+    image: fsouza/fake-gcs-server
+    command: -scheme http -port 4443 -public-host 127.0.0.1:4443
+    ports: ["4443:4443"]

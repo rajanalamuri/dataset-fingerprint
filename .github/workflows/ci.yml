@@ -1,0 +1,88 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:          # reused by release.yml so nothing ships untested
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install ruff mypy
+      - run: ruff check src tests examples
+      - run: ruff format --check src tests examples
+      - run: pip install -e . && mypy src
+
+  unit:
+    name: unit · ${{ matrix.os }} · py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        experimental: [false]
+        include:
+          - {os: windows-latest, python: "3.12", experimental: true}   # not yet verified on Windows
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "${{ matrix.python }}"}
+      - run: pip install -e ".[test]" fsspec
+      - run: pytest -m "not integration" --cov --cov-report=xml --cov-report=term
+      - uses: actions/upload-artifact@v4
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        with: {name: coverage-unit, path: coverage.xml}
+
+  integration:
+    name: integration · S3 + Azure + GCS emulators
+    runs-on: ubuntu-latest
+    env:
+      STORAGE_EMULATOR_HOST: http://127.0.0.1:4443
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: Start Azurite + fake-gcs-server (S3 runs in-process via moto)
+        run: |
+          docker run -d --name azurite -p 10000:10000 mcr.microsoft.com/azure-storage/azurite \
+            azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck --loose
+          docker run -d --name gcs -p 4443:4443 fsouza/fake-gcs-server -scheme http -port 4443 -public-host 127.0.0.1:4443
+          for p in 10000 4443; do for i in $(seq 1 30); do nc -z 127.0.0.1 $p && break; sleep 1; done; done
+      - run: pip install -e ".[integration]"
+      - name: Integration tests (all three backends must run - no silent skips in CI)
+        shell: bash
+        run: |
+          set -o pipefail
+          pytest -m integration -rs --cov --cov-report=xml | tee out.txt
+          ! grep -q "SKIPPED" out.txt
+      - if: failure()
+        run: docker logs azurite | tail -50; docker logs gcs | tail -50
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check --strict dist/*
+      - name: Wheel installs clean with zero runtime dependencies
+        run: |
+          python -m venv /tmp/v && /tmp/v/bin/pip install dist/*.whl
+          test -z "$(/tmp/v/bin/pip show mlfingerprint | sed -n 's/^Requires: //p')"
+          /tmp/v/bin/fingerprint --version
+          /tmp/v/bin/python examples/poc_multimodal.py /tmp/poc > /tmp/poc.log && tail -20 /tmp/poc.log
+      - uses: actions/upload-artifact@v4
+        with: {name: dist, path: dist/}

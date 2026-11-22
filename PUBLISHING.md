@@ -32,3 +32,11 @@ Nothing has been published yet. The name `mlfingerprint` was free on PyPI on 202
 | `security.yml` | every push / PR + weekly | bandit · security regression tests · pip-audit on all extras · gitleaks · CodeQL · dependency review |
 | `scorecard.yml` | push to main + weekly | OpenSSF Scorecard |
 | `release.yml` | tag `v*` / manual | reuses ci + security → build → provenance → TestPyPI → (approval) → PyPI → GitHub Release |
+
+## Making it citable (Zenodo DOI)
+
+1. Make the repository **public** (Zenodo only archives public repos).
+2. Sign in at zenodo.org with GitHub → *GitHub* tab → flip the switch for `rajanalamuri/mlfingerprint`.
+3. Create a GitHub **Release** (the release workflow already does this on `v*` tags). Zenodo archives it and mints a
+   DOI using `.zenodo.json`; it also gives a *concept DOI* that always points at the latest version.
+4. Add the DOI badge to the README and the DOI to `CITATION.cff` (`doi:` field).

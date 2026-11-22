@@ -88,6 +88,7 @@ Sensor folders set the modality even for generic files (`radar_front/0001.bin` �
 | auto grouping (`group_by="auto"`) | frames, recordings, sensor streams, image+label pairs, augmented copies split apart |
 | augmentation detection (`img_001_hflip.png`, `utt3_speed1.1.wav`, `aug/`, `synthetic/`) | an augmented copy in a different split than its original; augmented data in val/test |
 | exact duplicates | the same file content in two splits |
+| near-duplicates (`near_duplicates=True`, needs Pillow) | the same picture re-encoded, resized or colour-shifted in two splits (64-bit dHash, exact Hamming search) |
 | record overlap (text/csv/jsonl) | the same normalised sentence/row in train and val/test |
 | parent check (derived datasets) | training files copied or augmented from a parent's val/test split |
 | temporal check | training window overlapping the test period |
@@ -180,7 +181,7 @@ Upstream of a feature store, alongside your experiment tracker. If you outgrow i
 
 ## Benchmarks
 
-Run on **MNIST**, **Fashion-MNIST** (70,000 images each) and the full **COCO 2017** annotation set (122,224 files,
+Run on **MNIST**, **Fashion-MNIST** (70,000 images each), **CIFAR-10** and the full **COCO 2017** annotation set (122,224 files,
 886,282 objects) plus real COCO images. Every number is cross-checked against ground truth computed independently
 of mlfingerprint. Full report and how to reproduce it: [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
@@ -199,8 +200,30 @@ of mlfingerprint. Full report and how to reproduce it: [benchmarks/RESULTS.md](b
 | Val objects vs official `instances_val2017.json` (non-crowd) | 36,335 = 36,335 ✅ |
 | Edited box caught · copied val label in train flagged · image+label pairs kept together | ✅ · ✅ · ✅ |
 
+| CIFAR-10 near-duplicates (`near_duplicates=4`), vs the ciFAIR list | |
+|---|---:|
+| Test images flagged / in ciFAIR's list / confirmed by eye but missing from it | 91 / 63 / 24 |
+| Flags that are real train/test leaks | 87 / 91 (96 %) |
+| Recall of ciFAIR's 286 (CNN + manual review) | 22 % at ≤ 4 · 54 % at ≤ 8 |
+| Commit of 60,000 PNGs without / with the check / warm re-commit | 7.5 s / 35.8 s / 10.6 s |
+
 ## Quality
 
 Unit, integration (S3, Azure, GCS emulators) and security test suites run in CI on Linux and macOS for Python 3.9–3.13, alongside bandit, CodeQL, pip-audit, gitleaks and OpenSSF Scorecard. Releases are built once, carry provenance attestations, and go out through PyPI Trusted Publishing. See [SECURITY.md](SECURITY.md) for the threat model.
+
+## Citing
+
+If mlfingerprint helps your work, please cite it. GitHub's **"Cite this repository"** button uses [`CITATION.cff`](CITATION.cff),
+and every tagged release is archived with a DOI on Zenodo.
+
+```bibtex
+@software{alamuri_mlfingerprint,
+  author  = {Alamuri, Raj},
+  title   = {mlfingerprint: a lockfile for training data},
+  url     = {https://github.com/rajanalamuri/mlfingerprint},
+  version = {0.1.0},
+  year    = {2026}
+}
+```
 
 MIT © Raj Alamuri · Alpha

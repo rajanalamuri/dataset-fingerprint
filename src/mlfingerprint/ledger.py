@@ -30,7 +30,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, Iterator, List, Optional, Sequence, Union
 
-from . import __version__
+from . import __version__, perceptual
 from .diff import Diff, bump_semver, compute_diff, parse_semver
 from .hashing import ALGORITHM, HashCache, digest, hash_stream
 from .modality import detect_modality, sensor_keyword
@@ -811,6 +811,7 @@ class Ledger:
         time_cutoffs: Optional[Dict[str, Any]] = None,
         row_split: Optional[Dict[str, Any]] = None,
         content_checks: bool = True,
+        near_duplicates: Union[bool, int] = False,
         dry_run: bool = False,
         quiet: bool = False,
     ) -> DatasetVersion:
@@ -843,6 +844,9 @@ class Ledger:
                    recorded in the manifest; use ds.split_for_time(t) in your loader.
         content_checks: hash every record of text/csv/jsonl files (<=256 MB each) to catch the same
                    sentence / row in train and test.
+        near_duplicates: True (Hamming <= 4) or an int 0..10 - perceptual-hash every image and flag
+                   re-encoded / resized / colour-shifted copies of the same picture in different splits
+                   (needs Pillow). The 64-bit dHash is cached by sha256, so re-commits are cheap.
         """
         if mode not in MODES:
             raise FingerprintError("mode must be " + " | ".join(MODES))
@@ -850,6 +854,12 @@ class Ledger:
             raise FingerprintError("label_format must be None or 'yolo'")
         if augmentation not in ("warn", "error", "ignore"):
             raise FingerprintError("augmentation must be warn | error | ignore")
+        nd_threshold = None if near_duplicates is False or near_duplicates is None else (4 if near_duplicates is True else int(near_duplicates))
+        if nd_threshold is not None and not 0 <= nd_threshold <= perceptual.MAX_THRESHOLD:
+            raise FingerprintError(f"near_duplicates threshold must be 0..{perceptual.MAX_THRESHOLD}")
+        if nd_threshold is not None and not perceptual.available():
+            _log("mlfingerprint: WARNING near_duplicates needs Pillow (pip install mlfingerprint[image]) - skipped", quiet)
+            nd_threshold = None
         parent_locks, parent_versions = self._resolve_parents(parents)
         src = Location(source, source_storage_options if source_storage_options is not None else self.storage_options)
         if not src.exists():
@@ -942,6 +952,15 @@ class Ledger:
                 if hc:
                     hc.put(uri, r["size"], r["_stamp"], sha)
             r["sha256"] = sha
+            if nd_threshold is not None and r["modality"] == "image" and r["split"] != "shared":
+                ph = hc.get_ph(sha) if hc else None
+                if ph is None:
+                    with src.open(r["source_path"], "rb") as f:
+                        ph = perceptual.dhash(f)
+                    if ph is not None and hc:
+                        hc.put_ph(sha, ph)
+                if ph is not None:
+                    r.setdefault("meta", {})["dhash"] = "%016x" % ph
             if probe:
                 meta = probe_file(src, r["source_path"], r["modality"])
                 if meta:
@@ -1032,6 +1051,19 @@ class Ledger:
                 checks["quality"]["record_overlap_with_train"] = overlap
                 msg = ", ".join(f"{v} {k} record(s)" for k, v in overlap.items())
                 checks["warnings"].append(f"{msg} also appear in train (exact, normalised) - test contamination")
+                _log(f"mlfingerprint: WARNING {checks['warnings'][-1]}", quiet)
+        if nd_threshold is not None:
+            ph_rows = [r for r in rows if (r.get("meta") or {}).get("dhash")]
+            pairs, hot = perceptual.cross_split_pairs([(r["split"], int(r["meta"]["dhash"], 16)) for r in ph_rows], nd_threshold)
+            sha_of = [r["sha256"] for r in ph_rows]
+            pairs = [p for p in pairs if sha_of[p[0]] != sha_of[p[1]]]  # byte-identical ones are already reported
+            nd = perceptual.summarize([r["source_path"] for r in ph_rows], [r["split"] for r in ph_rows], pairs)
+            nd.update(threshold=nd_threshold, hashed=len(ph_rows), skipped_flat=hot)
+            checks["quality"]["near_duplicates"] = nd
+            if nd["with_train_match"]:
+                msg = ", ".join(f"{v} {k}" for k, v in nd["with_train_match"].items())
+                ex = nd["examples"][0]
+                checks["warnings"].append(f"{msg} image(s) have a near-duplicate in train (dHash <= {nd_threshold}), e.g. {ex[0]} ~ {ex[1]}")
                 _log(f"mlfingerprint: WARNING {checks['warnings'][-1]}", quiet)
         if temporal and strategy.get("time_ranges", {}).get("train") and strategy["time_ranges"].get("test"):
             tr, te = strategy["time_ranges"]["train"], strategy["time_ranges"]["test"]

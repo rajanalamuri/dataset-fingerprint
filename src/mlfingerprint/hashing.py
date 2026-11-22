@@ -49,6 +49,7 @@ class HashCache:
         self._lock = threading.Lock()
         self._db = sqlite3.connect(self.path, check_same_thread=False)
         self._db.execute("CREATE TABLE IF NOT EXISTS h2 (uri TEXT PRIMARY KEY, size INTEGER, stamp TEXT, sha TEXT)")
+        self._db.execute("CREATE TABLE IF NOT EXISTS ph (sha TEXT PRIMARY KEY, h TEXT)")
         self._pending = 0
 
     def get(self, uri: str, size: int, stamp: Optional[str]) -> Optional[str]:
@@ -65,6 +66,20 @@ class HashCache:
             return
         with self._lock:
             self._db.execute("INSERT OR REPLACE INTO h2 VALUES (?,?,?,?)", (uri, size, stamp, sha))
+            self._pending += 1
+            if self._pending >= 500:
+                self._db.commit()
+                self._pending = 0
+
+    def get_ph(self, sha: str) -> Optional[int]:
+        """Perceptual hash keyed by content hash (same bytes -> same picture)."""
+        with self._lock:
+            row = self._db.execute("SELECT h FROM ph WHERE sha=?", (sha,)).fetchone()
+        return int(row[0], 16) if row else None
+
+    def put_ph(self, sha: str, h: int) -> None:
+        with self._lock:
+            self._db.execute("INSERT OR REPLACE INTO ph VALUES (?,?)", (sha, "%016x" % h))
             self._pending += 1
             if self._pending >= 500:
                 self._db.commit()

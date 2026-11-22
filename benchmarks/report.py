@@ -197,4 +197,52 @@ independent ground-truth checks cover the annotations only.
 """
     (HERE / "RESULTS.md").write_text(md)
 
+FP = HERE / "results" / "cifar.json"
+if FP.exists():
+    F = json.loads(FP.read_text())
+    sw = {x["threshold"]: x for x in F["sweep"]}
+    rv = F["unlisted_T4_review"]
+    t4 = sw[4]
+    true4 = t4["in_cifair_list"] + rv["test_images_near_duplicate"]
+    tbl = "\n".join(
+        f"| ≤ {x['threshold']} | {x['test_images_flagged']} | {x['in_cifair_list']} | {x['recall_vs_cifair']:.0%} | {x['search_seconds']:.1f} s |"
+        for x in F["sweep"]
+    )
+    tf = F["timings_sec"]
+    md += f"""
+# CIFAR-10: near-duplicates across splits (reproducing ciFAIR)
+
+Barz & Denzler (ciFAIR) found **{F["cifair_listed"]}** CIFAR-10 test images with a near-duplicate in the training set,
+using CNN features plus manual review. mlfingerprint has no CNN: `commit(..., near_duplicates=T)` computes a 64-bit
+difference hash (dHash) per image and runs an exact Hamming search across splits. Exact byte-level duplicates across
+splits: **{F["exact_duplicates_across_splits"]}**.
+
+| dHash distance | Test images flagged | In the ciFAIR list | Recall vs ciFAIR | Search time |
+|---|---:|---:|---:|---:|
+{tbl}
+
+**At the default threshold (≤ 4)**, {t4["test_images_flagged"]} test images are flagged. {t4["in_cifair_list"]} are in the ciFAIR list.
+The other {rv["test_images_near_duplicate"] + rv["test_images_different"]} were reviewed by eye ([pairs](results/cifar_unlisted_review.csv),
+[contact sheet](results/cifar_unlisted_T4.png)): **{rv["test_images_near_duplicate"]} are clearly the same photograph** as a training
+image (colour, contrast or grayscale changes) and {rv["test_images_different"]} are different photos. So about
+**{true4}/{t4["test_images_flagged"]} ({true4 / t4["test_images_flagged"]:.0%}) of flags are real leaks**, and those
+{rv["test_images_near_duplicate"]} are not in ciFAIR's list, so they are still in the ciFAIR-10 test set (its kept test images are
+pixel-identical to CIFAR-10's).
+
+**Limits, stated plainly:** a 64-bit hash of a 32×32 thumbnail recovers only {t4["recall_vs_cifair"]:.0%} of ciFAIR's list at ≤ 4 and
+{sw[8]["recall_vs_cifair"]:.0%} at ≤ 8, where precision drops. It finds re-encoded and colour-shifted copies, not crops or re-shoots.
+It is a cheap guard built into every commit; it does not replace an embedding search. One reviewer; the review is in the repo
+so it can be checked.
+
+| Cost (60,000 PNGs) | Time |
+|---|---:|
+| Commit without the check | {tf["commit_plain_cold"]:.1f} s |
+| Commit with the check (cold) | {tf["commit_with_near_dups_cold"]:.1f} s |
+| Re-commit with the check (hashes cached by sha256) | {tf["recommit_with_near_dups_warm"]:.1f} s |
+
+Data: CIFAR-10 binary batches (sha256 pinned in `run_cifar.py`); the test batch was cross-checked against ciFAIR-10.
+Reproduce: `bash benchmarks/download_cifar.sh .bench/cifar10 && python benchmarks/run_cifar.py --root .bench/cifar10 --work .bench/cifar-work`.
+"""
+    (HERE / "RESULTS.md").write_text(md)
+
 print(md)

@@ -1,0 +1,30 @@
+test,train,dhash_distance,review,note
+test/frog/01513.png,train/frog/06451.png,0,near-duplicate,"same shot, colour/brightness/crop change"
+test/frog/04413.png,train/frog/29752.png,1,near-duplicate,"same shot, colour/brightness/crop change"
+test/horse/05194.png,train/horse/20016.png,1,near-duplicate,"same shot, colour/brightness/crop change"
+test/cat/09141.png,train/cat/06167.png,1,near-duplicate,"same shot, colour/brightness/crop change"
+test/horse/09186.png,train/horse/37082.png,1,near-duplicate,grayscale copy
+test/automobile/06173.png,train/automobile/04039.png,2,near-duplicate,grayscale copy
+test/deer/02925.png,train/deer/36552.png,2,near-duplicate,"same shot, colour/brightness/crop change"
+test/deer/03095.png,train/deer/01373.png,2,near-duplicate,"same shot, colour/brightness/crop change"
+test/frog/00311.png,train/frog/43661.png,2,near-duplicate,"same shot, colour/brightness/crop change"
+test/frog/07163.png,train/frog/07252.png,2,near-duplicate,"same shot, colour/brightness/crop change"
+test/cat/03572.png,train/cat/08286.png,2,near-duplicate,contrast change
+test/deer/02406.png,train/deer/28213.png,2,near-duplicate,"same shot, colour/brightness/crop change"
+test/airplane/04937.png,train/airplane/05994.png,3,near-duplicate,"same shot, colour/brightness/crop change"
+test/airplane/05762.png,train/airplane/01711.png,3,near-duplicate,"same shot, colour/brightness/crop change"
+test/deer/02925.png,train/deer/41148.png,3,near-duplicate,"same shot, colour/brightness/crop change"
+test/airplane/04037.png,train/airplane/04337.png,3,near-duplicate,"same shot, colour/brightness/crop change"
+test/horse/09020.png,train/horse/49063.png,3,near-duplicate,"same shot, colour/brightness/crop change"
+test/airplane/02909.png,train/airplane/04651.png,4,different,different photo (similar sunset scene)
+test/airplane/06574.png,train/airplane/04651.png,4,different,different photo (similar sunset scene)
+test/frog/08150.png,train/frog/27595.png,4,near-duplicate,"same shot, colour/brightness/crop change"
+test/frog/06547.png,train/frog/32537.png,4,near-duplicate,"same shot, colour/brightness/crop change"
+test/truck/02899.png,train/truck/27807.png,4,near-duplicate,"same shot, colour/brightness/crop change"
+test/airplane/04387.png,train/bird/47563.png,4,different,different object
+test/bird/02564.png,train/bird/43135.png,4,near-duplicate,"same shot, colour/brightness/crop change"
+test/airplane/09482.png,train/airplane/10589.png,4,near-duplicate,"same shot, colour/brightness/crop change"
+test/cat/03391.png,train/cat/44103.png,4,near-duplicate,"same shot, colour/brightness/crop change"
+test/frog/05761.png,train/frog/23269.png,4,near-duplicate,"same shot, colour/brightness/crop change"
+test/truck/02807.png,train/truck/25507.png,4,near-duplicate,"same shot, colour/brightness/crop change"
+test/airplane/05587.png,train/airplane/31635.png,4,different,different photo of similar scene

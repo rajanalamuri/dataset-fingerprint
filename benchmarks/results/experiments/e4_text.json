@@ -1,0 +1,92 @@
+[
+ {
+  "dataset": "AG News",
+  "train_records": 120000,
+  "splits": {
+   "test": {
+    "records": 7600,
+    "records_also_in_train_tool": 11,
+    "record_leak_rate_tool": 0.001447,
+    "leaked_records_rowwise": 11,
+    "leaked_with_different_label_in_train": 1,
+    "acc_all": 0.9242,
+    "acc_leaked": 0.8182,
+    "acc_clean": 0.9244,
+    "acc_if_leaked_removed": 0.9244
+   }
+  }
+ },
+ {
+  "dataset": "TREC-6",
+  "train_records": 5452,
+  "splits": {
+   "test": {
+    "records": 500,
+    "records_also_in_train_tool": 11,
+    "record_leak_rate_tool": 0.022,
+    "leaked_records_rowwise": 11,
+    "leaked_with_different_label_in_train": 1,
+    "acc_all": 0.884,
+    "acc_leaked": 0.9091,
+    "acc_clean": 0.8834,
+    "acc_if_leaked_removed": 0.8834
+   }
+  }
+ },
+ {
+  "dataset": "SST-2",
+  "train_records": 6920,
+  "splits": {
+   "val": {
+    "records": 872,
+    "records_also_in_train_tool": 0,
+    "record_leak_rate_tool": 0.0,
+    "leaked_records_rowwise": 0,
+    "leaked_with_different_label_in_train": 0,
+    "acc_all": 0.8005,
+    "acc_leaked": null,
+    "acc_clean": 0.8005,
+    "acc_if_leaked_removed": 0.8005
+   },
+   "test": {
+    "records": 1821,
+    "records_also_in_train_tool": 2,
+    "record_leak_rate_tool": 0.001098,
+    "leaked_records_rowwise": 2,
+    "leaked_with_different_label_in_train": 0,
+    "acc_all": 0.8144,
+    "acc_leaked": 1.0,
+    "acc_clean": 0.8142,
+    "acc_if_leaked_removed": 0.8142
+   }
+  }
+ },
+ {
+  "dataset": "SST-5",
+  "train_records": 8544,
+  "splits": {
+   "val": {
+    "records": 1101,
+    "records_also_in_train_tool": 1,
+    "record_leak_rate_tool": 0.000909,
+    "leaked_records_rowwise": 2,
+    "leaked_with_different_label_in_train": 0,
+    "acc_all": 0.3797,
+    "acc_leaked": 1.0,
+    "acc_clean": 0.3785,
+    "acc_if_leaked_removed": 0.3785
+   },
+   "test": {
+    "records": 2210,
+    "records_also_in_train_tool": 2,
+    "record_leak_rate_tool": 0.000905,
+    "leaked_records_rowwise": 2,
+    "leaked_with_different_label_in_train": 0,
+    "acc_all": 0.4072,
+    "acc_leaked": 1.0,
+    "acc_clean": 0.4067,
+    "acc_if_leaked_removed": 0.4067
+   }
+  }
+ }
+]

@@ -67,3 +67,26 @@ def test_same_recording_name_in_train_and_test_is_a_warning_not_a_leak(tmp_path)
     assert lk["leak_rate"] == 0.0
     assert lk["recording_names_also_in_train"]["count"] == 1
     assert any("seq01" in w for w in v.manifest["lineage"]["warnings"])
+
+
+def test_takes_of_one_source_clip_stay_together_and_are_flagged_when_split(tmp_path):
+    from dataset_fingerprint.splits import source_stem
+
+    assert source_stem("1-100038-A-14") == "1-100038-14" and source_stem("rec7_part2") == "rec7"
+    assert source_stem("frame_000123") == "frame_000123" and source_stem("a") == "a"
+    flat = tmp_path / "audio"
+    for c in range(40):
+        for t in "ABC":
+            _w(flat / f"1-{1000 + c}-{t}-7.wav", f"{c}{t}".encode())
+    v = Ledger(str(tmp_path / "l")).commit(str(flat), split="0.7,0.3", quiet=True, cache=False)
+    by_clip = {}
+    for r in v.records():
+        by_clip.setdefault(r["source_path"].split("-")[1], set()).add(r["split"])
+    assert all(len(s) == 1 for s in by_clip.values())
+
+    given = tmp_path / "given"  # a file-level split handed over as folders: takes end up on both sides
+    for c in range(10):
+        _w(given / "train" / f"1-{c}-A-7.wav", b"a%d" % c)
+        _w(given / "test" / f"1-{c}-B-7.wav", b"b%d" % c)
+    v = Ledger(str(tmp_path / "l2")).commit(str(given), quiet=True, cache=False, label_from="none")
+    assert v.manifest["quality"]["leakage"]["recording_names_also_in_train"]["count"] == 10

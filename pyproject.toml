@@ -96,3 +96,4 @@ ignore = ["E731"]
 [tool.ruff.lint.per-file-ignores]
 "scripts/*" = ["E501"]   # inline SVG/CSS templates
 "benchmarks/*" = ["E501", "E731"]
+"benchmarks/experiments/*" = ["E501", "E731", "E401", "E402", "E701", "E702", "E741", "B007"]  # research scripts

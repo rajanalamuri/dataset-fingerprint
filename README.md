@@ -85,7 +85,7 @@ Sensor folders set the modality even for generic files (`radar_front/0001.bin` �
 
 | Check | Catches |
 |---|---|
-| auto grouping (`group_by="auto"`) | frames, recordings, sensor streams, image+label pairs, augmented copies split apart |
+| auto grouping (`group_by="auto"`) | frames, recordings, sensor streams, image+label pairs, augmented copies, takes/parts of one source clip split apart |
 | augmentation detection (`img_001_hflip.png`, `utt3_speed1.1.wav`, `aug/`, `synthetic/`) | an augmented copy in a different split than its original; augmented data in val/test |
 | exact duplicates | the same file content in two splits |
 | near-duplicates (`near_duplicates=True`, needs Pillow) | the same picture re-encoded, resized or colour-shifted in two splits (64-bit dHash, exact Hamming search) |
@@ -201,7 +201,7 @@ Upstream of a feature store, alongside your experiment tracker. If you outgrow i
 
 ## Benchmarks
 
-Run on **MNIST**, **Fashion-MNIST** (70,000 images each), **CIFAR-10** and the full **COCO 2017** annotation set (122,224 files,
+Run on **MNIST**, **Fashion-MNIST** (70,000 images each), **CIFAR-10**, **UCI HAR**, **ESC-50**, four text benchmarks and the full **COCO 2017** annotation set (122,224 files,
 886,282 objects) plus real COCO images. Every number is cross-checked against ground truth computed independently
 of dataset-fingerprint. Full report and how to reproduce it: [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
@@ -231,6 +231,19 @@ of dataset-fingerprint. Full report and how to reproduce it: [benchmarks/RESULTS
 |---|---:|---:|---:|
 | As published (confirmed) | 0.00 % | 0.00 % | 0.00 % (0.91 % suspected, 0.87 % confirmed by eye) |
 | With 100 planted leaks (50 copies, 50 flips) | 1.00 % ✅ | 1.00 % ✅ | |
+
+### Does it matter? What the leaks it targets cost
+
+| Data | Leaky split | Clean split | |
+|---|---:|---:|---|
+| UCI HAR sensors, random forest | 97.7 % (random windows) | 93.2 % (by subject) | 3× fewer errors reported |
+| ESC-50 audio, logistic regression | 63.8 % (random files) | 54.7 % (by source clip) | +9 points; 4 sources also straddle the official folds |
+| CIFAR-10, 310 duplicated test images, 1-NN | 96.5 % (duplicates in train) | 64.8 % (removed) | memorising model: +32 points |
+| same images, small CNN | 97.3 % | 96.6 % | regularised model: < 1 point |
+| TREC-6 text | 11 of 500 test questions also in train (2.2 %) | | AG News, SST: ≤ 0.14 % |
+
+dataset-fingerprint's default split keeps subjects and source clips together, and flags them when a given split doesn't.
+Details: [benchmarks/RESULTS.md](benchmarks/RESULTS.md#does-the-leakage-matter-four-domains).
 
 ## Quality
 

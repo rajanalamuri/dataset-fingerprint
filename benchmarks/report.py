@@ -293,4 +293,102 @@ count anyone can check, not a weighted score. **Effective size** is what is left
     )
     (HERE / "RESULTS.md").write_text(md)
 
+XP = HERE / "results" / "experiments"
+if (XP / "e2_har.json").exists():
+    e2 = json.loads((XP / "e2_har.json").read_text())
+    e3 = json.loads((XP / "e3_esc50.json").read_text())
+    e4 = json.loads((XP / "e4_text.json").read_text())
+    r2 = json.loads((XP / "cifar_second_rater.json").read_text())
+    e1 = json.loads((XP / "e1_cifar.json").read_text()) if (XP / "e1_cifar.json").exists() else []
+
+    def ms(d, k):
+        return f"{d[k]['mean']:.1%} ± {d[k]['std']:.1%}"
+
+    md += "\n# Does the leakage matter? (four domains)\n\n"
+    if e1:
+        import statistics as st
+
+        full = [r for r in e1 if r["condition"] == "full"]
+        ded = [r for r in e1 if r["condition"] == "dedup"]
+        f = lambda rs, k: f"{st.mean(r[k] for r in rs):.1%}"  # noqa: E731
+        md += f"""## Images: CIFAR-10 near-duplicates ({len(full)} seeds, {full[0]["epochs"]} epochs, small CNN)
+
+The same {full[0]["n_leaked"]} test images (ciFAIR's 286 + the 24 found here) scored with a model trained on the full training set,
+and with one trained after removing their {50000 - ded[0]["train_size"]} matching training images.
+
+| Test images | Trained on full train set | Trained with the duplicates removed |
+|---|---:|---:|
+| The {full[0]["n_leaked"]} leaked test images | **{f(full, "acc_leaked")}** | **{f(ded, "acc_leaked")}** |
+| The other {10000 - full[0]["n_leaked"]:,} test images | {f(full, "acc_clean")} | {f(ded, "acc_clean")} |
+| All 10,000 | {f(full, "acc_all")} | {f(ded, "acc_all")} |
+| ↳ the 24 duplicates missing from ciFAIR | {f(full, "acc_ours24")} | {f(ded, "acc_ours24")} |
+"""
+        kp = XP / "e1b_cifar_knn.json"
+        if kp.exists():
+            kn = json.loads(kp.read_text())
+            md += f"""| *1-nearest-neighbour on pixels (memorises):* the {full[0]["n_leaked"]} leaked test images | **{kn["full"]["acc_leaked"]:.1%}** | **{kn["dedup"]["acc_leaked"]:.1%}** |
+| *1-NN:* all 10,000 | {kn["full"]["acc_all"]:.1%} | {kn["dedup"]["acc_all"]:.1%} |
+"""
+        md += """
+**Read this carefully.** The leaked images are *easy*: even with their duplicates removed the CNN gets ~96 % of them right
+against ~86 % for the rest, so comparing leaked with clean images overstates the effect ~15-fold. The causal effect of the
+duplicate is what changes when it is removed: under one point for a regularised CNN trained for 12 epochs, about 30 points for
+a model that memorises (1-NN). How much a leak inflates a score depends on how much the model memorises; checking the data
+is the only way to know without retraining.
+
+"""
+    a2, a3 = e2["accuracy"], e3["accuracy"]
+    md += (
+        f"""## Sensors: UCI HAR, windows of the same subject ({e2["windows"]:,} windows, {e2["subjects"]} subjects, 5 repeats)
+
+| Split | Random forest | Logistic regression |
+|---|---:|---:|
+| Random windows (what a generic splitter does) | {ms(a2, "random_window/random_forest")} | {ms(a2, "random_window/logistic_regression")} |
+| By subject | {ms(a2, "subject/random_forest")} | {ms(a2, "subject/logistic_regression")} |
+
+dataset-fingerprint on one folder per subject: {e2["tool_split"]["groups"]} groups, **{e2["tool_split"]["subjects_in_more_than_one_split"]} subjects split
+apart**. Handed a random window split as `train/` and `test/` folders, it flags all
+{e2["tool_on_random_split"]["recording_names_also_in_train"]} subjects as appearing on both sides.
+
+## Audio: ESC-50, takes cut from the same source clip ({e3["files"]:,} clips from {e3["source_clips"]:,} sources, 5 repeats)
+
+| Split | Random forest | Logistic regression |
+|---|---:|---:|
+| Random files | {ms(a3, "random_file/random_forest")} | {ms(a3, "random_file/logistic_regression")} |
+| Grouped by source clip | {ms(a3, "grouped_by_clip/random_forest")} | {ms(a3, "grouped_by_clip/logistic_regression")} |
+
+**Found and fixed by this experiment:** before it, dataset-fingerprint grouped ESC-50 file by file, and takes of
+{e3["tool"]["before_source_grouping_fix"]["clips_split_across_train_test_default_grouping"]} of {e3["tool"]["multi_take_clips"]} multi-take clips landed on both sides.
+Take/part markers (`-A-`, `_part2`, `_L`) are now stripped to form a source key: {e3["tool"]["clips_split_across_train_test_default_grouping"]} clips still cross,
+because their takes are filed under two different classes. That turns out to be true of the official folds as well:
+**{e3["official_folds"]["source_clips_in_two_folds"]} source clips sit in two official folds, each under two different labels**
+({", ".join(e3["official_folds"]["clips"])}).
+
+## Text: exact test records also in train
+
+| Dataset | Test records | Also in train | Leak rate | … with a different label | Accuracy on leaked / clean |
+|---|---:|---:|---:|---:|---|
+"""
+        + "\n".join(
+            f"| {d['dataset']} | {d['splits']['test']['records']:,} | {d['splits']['test']['records_also_in_train_tool']} | {d['splits']['test']['record_leak_rate_tool']:.2%} | "
+            f"{d['splits']['test']['leaked_with_different_label_in_train']} | {d['splits']['test']['acc_leaked']:.0%} / {d['splits']['test']['acc_clean']:.1%} |"
+            for d in e4
+        )
+        + f"""
+
+Text benchmarks are nearly clean; TREC-6 is the exception at 2.2 % of its 500 test questions. Too few to move the score.
+
+## Second rater for the 24 CIFAR duplicates
+
+A shift-tolerant normalised cross-correlation of grayscale pixels, calibrated on ciFAIR's own labels (5th percentile of its
+near-duplicates = {r2["threshold_p5_of_cifair_near_duplicates"]}; {r2["random_pairs_above_threshold"]} of 500 random pairs exceed it), agrees with the visual review on
+{r2["review_vs_rater2"]["near-duplicate|dup"] + r2["review_vs_rater2"]["different|not"]} of {sum(r2["review_vs_rater2"].values())} pairs: all {r2["review_vs_rater2"]["near-duplicate|dup"]} near-duplicate pairs (24 test images), and 3 of 4 rejections. The one
+disagreement is a similar runway scene (NCC 0.88) that ciFAIR's "very similar" category would also have counted.
+
+Reproduce: `bash benchmarks/experiments/download_experiments.sh .bench && export BENCH_DATA=.bench`, then run the scripts in
+`benchmarks/experiments/`.
+"""
+    )
+    (HERE / "RESULTS.md").write_text(md)
+
 print(md)

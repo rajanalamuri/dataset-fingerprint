@@ -27,6 +27,7 @@ _2026-11-22 · first public release._
 - Every commit reports a leak rate (val/test files that are byte copies or augmentations of train files, or overlap train in time), effective test size, and a record-level rate for text/tables; `max_leak_rate` / `--max-leak-rate` fails the commit above a threshold.
 - Optional perceptual near-duplicate check (`near_duplicates=True`, `--near-dups`): 64-bit dHash with exact Hamming search across splits, cached by content; reported as a separate *suspected* rate and flagged as uninformative when it matches most of a split.
 - Recording/sequence names shared by train and val/test are reported as a warning.
+- Auto grouping keeps takes/parts cut from one source together (`1-100038-A-14`, `rec7_part2`, `IMG_0001_L` share a source key), found with ESC-50.
 
 **Detection datasets**
 - `label_format="yolo"` (+ `class_names`, CLI `--label-format yolo --class-names`) counts objects per class in YOLO label files; box coordinates are never treated as text records.

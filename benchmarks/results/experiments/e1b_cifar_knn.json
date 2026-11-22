@@ -1,0 +1,12 @@
+{
+ "full": {
+  "acc_all": 0.4226,
+  "acc_leaked": 0.9645,
+  "acc_clean": 0.4053
+ },
+ "dedup": {
+  "acc_all": 0.4117,
+  "acc_leaked": 0.6484,
+  "acc_clean": 0.4041
+ }
+}
